@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict
 class AccountCreate(BaseModel):
     name: str
     type: str
+    balance: int = 0
     icon: str | None = None
     sort_order: int = 0
 

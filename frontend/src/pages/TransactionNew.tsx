@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { todayStr } from '../lib/utils'
+import { api } from '../api'
 
 export default function NewTransaction() {
   const nav = useNavigate()
@@ -12,14 +13,26 @@ export default function NewTransaction() {
   const [note, setNote] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [categories, setCategories] = useState<any[]>([])
+  const [accounts, setAccounts] = useState<any[]>([])
 
-  const categories = type === 'expense'
-    ? [{ id: '1', name: '餐饮' }, { id: '2', name: '交通' }, { id: '3', name: '购物' }, { id: '4', name: '娱乐' }, { id: '5', name: '居住' }, { id: '6', name: '医疗' }]
-    : [{ id: '10', name: '工资' }, { id: '11', name: '理财' }, { id: '12', name: '兼职' }, { id: '13', name: '红包' }]
+  useEffect(() => {
+    loadData()
+  }, [type])
 
-  const accounts = [
-    { id: '1', name: '微信' }, { id: '2', name: '支付宝' }, { id: '3', name: '银行卡' }, { id: '4', name: '信用卡' },
-  ]
+  async function loadData() {
+    try {
+      const [catRes, accRes] = await Promise.all([
+        api.getCategories(),
+        api.getAccounts(),
+      ])
+      const allCats = Array.isArray(catRes) ? catRes : []
+      setCategories(allCats.filter((c: any) => c.type === type && !c.parent_id))
+      setAccounts(Array.isArray(accRes) ? accRes : [])
+    } catch {
+      // 静默处理
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,11 +42,18 @@ export default function NewTransaction() {
     setError('')
     setLoading(true)
     try {
-      // await api.createTransaction({ type, amount: Math.round(Number(amount) * 100), category_id: Number(categoryId), account_id: Number(accountId), date, note })
-      setLoading(false)
+      await api.createTransaction({
+        type,
+        amount: Math.round(Number(amount) * 100),
+        category_id: Number(categoryId),
+        account_id: Number(accountId),
+        date,
+        note,
+      })
       nav('/transactions', { replace: true })
     } catch (err: any) {
       setError(err.message)
+    } finally {
       setLoading(false)
     }
   }
@@ -66,27 +86,35 @@ export default function NewTransaction() {
         {/* Category */}
         <div>
           <label className="block text-sm font-medium mb-2">分类</label>
-          <div className="grid grid-cols-3 gap-2">
-            {categories.map(c => (
-              <button key={c.id} type="button" onClick={() => setCategoryId(c.id)}
-                className={`px-3 py-2 text-sm rounded-lg border transition-colors ${categoryId === c.id ? 'border-accent bg-accent/10 text-accent font-medium' : 'border-border text-text-secondary hover:border-accent/50'}`}>
-                {c.name}
-              </button>
-            ))}
-          </div>
+          {categories.length > 0 ? (
+            <div className="grid grid-cols-3 gap-2">
+              {categories.map((c: any) => (
+                <button key={c.id} type="button" onClick={() => setCategoryId(String(c.id))}
+                  className={`px-3 py-2 text-sm rounded-lg border transition-colors ${categoryId === String(c.id) ? 'border-accent bg-accent/10 text-accent font-medium' : 'border-border text-text-secondary hover:border-accent/50'}`}>
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-sm text-text-secondary py-2">暂无分类</div>
+          )}
         </div>
 
         {/* Account */}
         <div>
           <label className="block text-sm font-medium mb-2">账户</label>
-          <div className="grid grid-cols-4 gap-2">
-            {accounts.map(a => (
-              <button key={a.id} type="button" onClick={() => setAccountId(a.id)}
-                className={`px-3 py-2 text-sm rounded-lg border transition-colors ${accountId === a.id ? 'border-accent bg-accent/10 text-accent font-medium' : 'border-border text-text-secondary hover:border-accent/50'}`}>
-                {a.name}
-              </button>
-            ))}
-          </div>
+          {accounts.length > 0 ? (
+            <div className="grid grid-cols-4 gap-2">
+              {accounts.map((a: any) => (
+                <button key={a.id} type="button" onClick={() => setAccountId(String(a.id))}
+                  className={`px-3 py-2 text-sm rounded-lg border transition-colors ${accountId === String(a.id) ? 'border-accent bg-accent/10 text-accent font-medium' : 'border-border text-text-secondary hover:border-accent/50'}`}>
+                  {a.name}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-sm text-text-secondary py-2">暂无账户</div>
+          )}
         </div>
 
         {/* Date */}

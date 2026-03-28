@@ -1,25 +1,32 @@
-import { useState } from 'react'
-
-const mockCategories = {
-  expense: [
-    { id: 1, name: '餐饮', icon: '饭', subcategories: [{ id: 11, name: '早餐' }, { id: 12, name: '午餐' }, { id: 13, name: '晚餐' }, { id: 14, name: '外卖' }] },
-    { id: 2, name: '交通', icon: '车', subcategories: [{ id: 21, name: '公交' }, { id: 22, name: '地铁' }, { id: 23, name: '打车' }, { id: 24, name: '加油' }] },
-    { id: 3, name: '购物', icon: '购', subcategories: [{ id: 31, name: '日用品' }, { id: 32, name: '服饰' }, { id: 33, name: '电子产品' }] },
-    { id: 4, name: '娱乐', icon: '乐', subcategories: [{ id: 41, name: '电影' }, { id: 42, name: '游戏' }, { id: 43, name: '旅行' }] },
-    { id: 5, name: '居住', icon: '住', subcategories: [{ id: 51, name: '房租' }, { id: 52, name: '水电' }, { id: 53, name: '物业' }] },
-    { id: 6, name: '医疗', icon: '医', subcategories: [{ id: 61, name: '挂号' }, { id: 62, name: '药品' }] },
-  ],
-  income: [
-    { id: 10, name: '工资', icon: '薪', subcategories: [] },
-    { id: 11, name: '理财', icon: '财', subcategories: [{ id: 111, name: '利息' }, { id: 112, name: '股息' }] },
-    { id: 12, name: '兼职', icon: '兼', subcategories: [] },
-    { id: 13, name: '红包', icon: '包', subcategories: [] },
-  ],
-}
+import { useState, useEffect } from 'react'
+import { api } from '../api'
 
 export default function Categories() {
   const [tab, setTab] = useState<'expense' | 'income'>('expense')
-  const cats = mockCategories[tab]
+  const [tree, setTree] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadCategories()
+  }, [])
+
+  async function loadCategories() {
+    setLoading(true)
+    try {
+      const data = await api.getCategories()
+      setTree(Array.isArray(data) ? data : [])
+    } catch {
+      // 静默处理
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filtered = tree.filter((c: any) => c.type === tab)
+
+  if (loading) {
+    return <div className="text-center text-text-secondary py-12">加载中...</div>
+  }
 
   return (
     <div className="space-y-4">
@@ -37,20 +44,20 @@ export default function Categories() {
 
       {/* Category tree */}
       <div className="space-y-3">
-        {cats.map(cat => (
+        {filtered.map((cat: any) => (
           <div key={cat.id} className="bg-surface rounded-xl border border-border overflow-hidden">
             <div className="flex items-center px-4 py-3">
               <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold ${tab === 'expense' ? 'bg-expense/10 text-expense' : 'bg-income/10 text-income'}`}>
-                {cat.icon}
+                {cat.icon || cat.name?.[0] || '?'}
               </div>
               <span className="ml-3 text-sm font-semibold">{cat.name}</span>
-              {cat.subcategories.length > 0 && (
-                <span className="ml-auto text-xs text-text-secondary">{cat.subcategories.length} 个子分类</span>
+              {cat.children?.length > 0 && (
+                <span className="ml-auto text-xs text-text-secondary">{cat.children.length} 个子分类</span>
               )}
             </div>
-            {cat.subcategories.length > 0 && (
+            {cat.children?.length > 0 && (
               <div className="border-t border-border px-4 py-2 flex flex-wrap gap-2">
-                {cat.subcategories.map(sub => (
+                {cat.children.map((sub: any) => (
                   <span key={sub.id} className="px-3 py-1 bg-bg rounded-full text-xs text-text-secondary">
                     {sub.name}
                   </span>
@@ -60,6 +67,10 @@ export default function Categories() {
           </div>
         ))}
       </div>
+
+      {filtered.length === 0 && (
+        <div className="text-center text-text-secondary py-8">暂无{tab === 'expense' ? '支出' : '收入'}分类</div>
+      )}
     </div>
   )
 }

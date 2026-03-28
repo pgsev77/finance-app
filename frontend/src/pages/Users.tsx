@@ -1,32 +1,62 @@
-import { useState } from 'react'
-
-const mockUsers = [
-  { id: 1, username: 'admin', role: 'admin', active: true, created_at: '2026-01-01' },
-  { id: 2, username: 'user1', role: 'user', active: true, created_at: '2026-02-15' },
-  { id: 3, username: 'user2', role: 'user', active: false, created_at: '2026-03-01' },
-]
+import { useState, useEffect } from 'react'
+import { api } from '../api'
 
 export default function Users() {
-  const [users, setUsers] = useState(mockUsers)
+  const [users, setUsers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
   const [newUsername, setNewUsername] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [newRole, setNewRole] = useState<'user' | 'admin'>('user')
+  const [error, setError] = useState('')
 
-  const handleCreate = () => {
-    if (!newUsername || !newPassword) return
-    setUsers([...users, { id: users.length + 1, username: newUsername, role: newRole, active: true, created_at: new Date().toISOString().slice(0, 10) }])
-    setNewUsername('')
-    setNewPassword('')
-    setShowCreate(false)
+  useEffect(() => {
+    loadUsers()
+  }, [])
+
+  async function loadUsers() {
+    setLoading(true)
+    try {
+      const data = await api.getUsers()
+      setUsers(Array.isArray(data) ? data : [])
+    } catch {
+      // 静默处理
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleToggle = (id: number) => {
-    setUsers(users.map(u => u.id === id ? { ...u, active: !u.active } : u))
+  async function handleCreate() {
+    if (!newUsername || !newPassword) return
+    setError('')
+    try {
+      await api.createUser({ username: newUsername, password: newPassword, role: newRole })
+      setNewUsername('')
+      setNewPassword('')
+      setShowCreate(false)
+      await loadUsers()
+    } catch (err: any) {
+      setError(err.message)
+    }
+  }
+
+  async function handleToggle(id: number) {
+    try {
+      await api.toggleUser(id)
+      await loadUsers()
+    } catch (err: any) {
+      setError(err.message)
+    }
+  }
+
+  if (loading) {
+    return <div className="text-center text-text-secondary py-12">加载中...</div>
   }
 
   return (
     <div className="space-y-4">
+      {error && <div className="text-sm text-expense bg-expense/10 rounded-lg px-3 py-2">{error}</div>}
+
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="text-sm text-text-secondary">共 {users.length} 个用户</div>
@@ -66,21 +96,21 @@ export default function Users() {
 
       {/* User list */}
       <div className="bg-surface rounded-xl border border-border divide-y divide-border">
-        {users.map(u => (
+        {users.map((u: any) => (
           <div key={u.id} className="flex items-center px-4 py-4">
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium">{u.username}</div>
               <div className="text-xs text-text-secondary mt-0.5">
-                {u.role === 'admin' ? '管理员' : '普通用户'} - 创建于 {u.created_at}
+                {u.role === 'admin' ? '管理员' : '普通用户'} - {u.is_active !== false ? '启用' : '禁用'}
               </div>
             </div>
-            <span className={`px-2 py-1 rounded-full text-xs font-medium mr-3 ${u.active ? 'bg-income/10 text-income' : 'bg-expense/10 text-expense'}`}>
-              {u.active ? '启用' : '禁用'}
+            <span className={`px-2 py-1 rounded-full text-xs font-medium mr-3 ${u.is_active !== false ? 'bg-income/10 text-income' : 'bg-expense/10 text-expense'}`}>
+              {u.is_active !== false ? '启用' : '禁用'}
             </span>
             {u.id !== 1 && (
               <button onClick={() => handleToggle(u.id)}
                 className="px-3 py-1.5 text-xs rounded-lg border border-border hover:border-accent/50 text-text-secondary hover:text-accent transition-colors">
-                {u.active ? '禁用' : '启用'}
+                {u.is_active !== false ? '禁用' : '启用'}
               </button>
             )}
           </div>

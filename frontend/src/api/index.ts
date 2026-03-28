@@ -8,7 +8,8 @@ export interface User {
   id: number
   username: string
   role: 'admin' | 'user'
-  force_change_password?: boolean
+  is_active: boolean
+  force_change_password: boolean
 }
 
 // 保存用户信息
@@ -29,7 +30,7 @@ export function clearAuth() {
   localStorage.removeItem('user')
 }
 
-// fetch 封装
+// fetch 封装，自动解包 {success, data} 响应
 async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const token = getToken()
   const res = await fetch(`${BASE}${path}`, {
@@ -49,7 +50,12 @@ async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
     const body = await res.json().catch(() => ({}))
     throw new Error(body.detail || `请求失败 ${res.status}`)
   }
-  return res.json()
+  const json = await res.json()
+  // 自动解包 {success: true, data: ...} 格式
+  if (json && typeof json === 'object' && json.success === true && 'data' in json) {
+    return json.data as T
+  }
+  return json as T
 }
 
 export const api = {
@@ -63,23 +69,33 @@ export const api = {
   // Transactions
   getTransactions: (params?: Record<string, string>) => {
     const q = params ? '?' + new URLSearchParams(params).toString() : ''
-    return request<{ items: any[]; total: number }>(`/transactions${q}`)
+    return request<{ items: any[]; total: number; page: number; page_size: number }>(`/transactions${q}`)
   },
   createTransaction: (data: any) =>
     request('/transactions', { method: 'POST', body: JSON.stringify(data) }),
 
   // Accounts
   getAccounts: () => request<any[]>('/accounts'),
+  createAccount: (data: any) =>
+    request('/accounts', { method: 'POST', body: JSON.stringify(data) }),
+  updateAccount: (id: number, data: any) =>
+    request(`/accounts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteAccount: (id: number) =>
+    request(`/accounts/${id}`, { method: 'DELETE' }),
 
   // Categories
   getCategories: () => request<any[]>('/categories'),
 
   // Reports
-  getMonthlyReport: (month: string) =>
-    request<any>(`/reports/monthly?month=${month}`),
+  getMonthlyReport: (year: number, month: number) =>
+    request<any>(`/reports/monthly?year=${year}&month=${month}`),
+  getTrend: (months?: number) =>
+    request<any[]>(`/reports/trend?months=${months || 6}`),
 
   // Subscriptions
   getSubscriptions: () => request<any[]>('/subscriptions'),
+  getUpcomingSubscriptions: (days?: number) =>
+    request<any[]>(`/subscriptions/upcoming?days=${days || 7}`),
 
   // Users (admin)
   getUsers: () => request<any[]>('/users'),
