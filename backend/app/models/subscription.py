@@ -14,7 +14,6 @@ class Subscription(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     amount: Mapped[int] = mapped_column(Integer, nullable=False)
-    category_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("categories.id"), nullable=True)
     subscription_category_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("subscription_categories.id"), nullable=True)
     account_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("accounts.id"), nullable=True)
 

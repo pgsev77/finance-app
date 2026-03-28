@@ -22,8 +22,6 @@ class SubscriptionCategoryOut(BaseModel):
 class SubscriptionCreate(BaseModel):
     name: str
     amount: int
-    category_id: int | None = None
-    subscription_category_id: int | None = None
     account_id: int | None = None
     cycle_type: str = "monthly"  # weekly/monthly/quarterly/yearly/custom/once
     cycle_days: int | None = None
@@ -43,8 +41,6 @@ class SubscriptionCreate(BaseModel):
 class SubscriptionUpdate(BaseModel):
     name: str | None = None
     amount: int | None = None
-    category_id: int | None = None
-    subscription_category_id: int | None = None
     account_id: int | None = None
     cycle_type: str | None = None
     cycle_days: int | None = None
@@ -64,8 +60,6 @@ class SubscriptionOut(BaseModel):
     id: int
     name: str
     amount: int
-    category_id: int | None = None
-    subscription_category_id: int | None = None
     account_id: int | None = None
     cycle_type: str
     cycle_days: int | None = None
