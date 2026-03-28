@@ -1,21 +1,10 @@
-# Python
-__pycache__/
-*.py[cod]
-.venv/
-*.egg-info/
-dev.db
-
-# Node
 node_modules/
-dist/
-
-# Environment
+__pycache__/
+*.pyc
 .env
 .env.local
-.env.*.local
-.idea/
-.vscode/
-*.swp
-
-# OS
-.DS_Store
+*.db
+.vite/
+dist/
+build/
+.venv/
