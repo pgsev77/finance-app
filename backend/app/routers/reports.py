@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, func
+from sqlalchemy import select, func, cast, Date
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.deps import get_current_user
@@ -28,8 +28,8 @@ async def monthly_report(
             select(Transaction).where(
                 Transaction.user_id == current_user.id,
                 Transaction.is_deleted == False,
-                Transaction.date >= start,
-                Transaction.date < end,
+                Transaction.date >= cast(start, Date),
+                Transaction.date < cast(end, Date),
             )
         )
     ).scalars().all()

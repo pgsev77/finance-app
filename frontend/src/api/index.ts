@@ -94,6 +94,7 @@ export const api = {
 
   // Subscriptions
   getSubscriptions: () => request<any[]>('/subscriptions'),
+  getSubscriptionSummary: () => request<any>('/subscriptions/summary'),
   getUpcomingSubscriptions: (days?: number) =>
     request<any[]>(`/subscriptions/upcoming?days=${days || 7}`),
   createSubscription: (data: any) =>
@@ -102,6 +103,9 @@ export const api = {
     request(`/subscriptions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteSubscription: (id: number) =>
     request(`/subscriptions/${id}`, { method: 'DELETE' }),
+  getSubscriptionCategories: () => request<any[]>('/subscriptions/categories'),
+  createSubscriptionCategory: (data: any) =>
+    request('/subscriptions/categories', { method: 'POST', body: JSON.stringify(data) }),
 
   // Users (admin)
   getUsers: () => request<any[]>('/users'),

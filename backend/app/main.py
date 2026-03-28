@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 
 from app.config import settings
 from app.database import engine, Base
-from app.models import User, UserOAuth, UserSettings, Account, Category, Transaction, Subscription
+from app.models import User, UserOAuth, UserSettings, Account, Category, Transaction, Subscription, SubscriptionCategory
 from app.auth.router import router as auth_router
 from app.routers import users, accounts, categories, transactions, subscriptions, reports, settings as settings_router
 from app.services.auth_service import hash_password
@@ -58,6 +58,25 @@ async def lifespan(app: FastAPI):
                 db.add(Category(user_id=admin.id, name=name, type=typ, parent_id=parent_id, color=color))
 
             db.add(UserSettings(user_id=admin.id))
+
+            # 初始化订阅分类
+            sub_cat_presets = [
+                ("流媒体", "play", "#ef4444"),
+                ("音乐", "music", "#8b5cf6"),
+                ("云存储", "cloud", "#3b82f6"),
+                ("生产力工具", "briefcase", "#f59e0b"),
+                ("社交网络", "users", "#ec4899"),
+                ("游戏", "gamepad-2", "#10b981"),
+                ("新闻资讯", "newspaper", "#6366f1"),
+                ("学习教育", "book-open", "#14b8a6"),
+                ("健康健身", "heart", "#ef4444"),
+                ("设计创意", "palette", "#f97316"),
+                ("开发工具", "code-2", "#64748b"),
+                ("其他", "more-horizontal", "#9ca3af"),
+            ]
+            for name, icon, color in sub_cat_presets:
+                db.add(SubscriptionCategory(user_id=admin.id, name=name, icon=icon, color=color))
+
             await db.commit()
 
     yield

@@ -4,8 +4,9 @@ from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
 from app.models.subscription import Subscription
+from app.models.subscription_category import SubscriptionCategory
 
 __all__ = [
     "User", "UserOAuth", "UserSettings",
-    "Account", "Category", "Transaction", "Subscription",
+    "Account", "Category", "Transaction", "Subscription", "SubscriptionCategory",
 ]
