@@ -63,7 +63,7 @@ export default function Reports() {
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       {/* Month picker */}
       <div className="flex items-center justify-center gap-4">
         <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-surface-hover text-text-secondary hover:text-text transition-colors">
@@ -76,18 +76,18 @@ export default function Reports() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-surface rounded-xl border border-border p-5">
-          <div className="text-sm text-text-secondary">总收入</div>
-          <div className="text-2xl font-bold text-income mt-1">+{formatMoney(monthly.total_income)}</div>
+      <div className="grid grid-cols-3 gap-2.5 lg:grid-cols-1 lg:sm:grid-cols-3 lg:gap-4">
+        <div className="bg-surface rounded-xl border border-border p-3.5 lg:p-5">
+          <div className="text-xs lg:text-sm text-text-secondary">总收入</div>
+          <div className="text-base lg:text-2xl font-bold text-income mt-0.5 lg:mt-1">+{formatMoney(monthly.total_income)}</div>
         </div>
-        <div className="bg-surface rounded-xl border border-border p-5">
-          <div className="text-sm text-text-secondary">总支出</div>
-          <div className="text-2xl font-bold text-expense mt-1">-{formatMoney(monthly.total_expense)}</div>
+        <div className="bg-surface rounded-xl border border-border p-3.5 lg:p-5">
+          <div className="text-xs lg:text-sm text-text-secondary">总支出</div>
+          <div className="text-base lg:text-2xl font-bold text-expense mt-0.5 lg:mt-1">-{formatMoney(monthly.total_expense)}</div>
         </div>
-        <div className="bg-surface rounded-xl border border-border p-5">
-          <div className="text-sm text-text-secondary">结余</div>
-          <div className={`text-2xl font-bold mt-1 ${(monthly.balance || 0) >= 0 ? 'text-income' : 'text-expense'}`}>
+        <div className="bg-surface rounded-xl border border-border p-3.5 lg:p-5">
+          <div className="text-xs lg:text-sm text-text-secondary">结余</div>
+          <div className={`text-base lg:text-2xl font-bold mt-0.5 lg:mt-1 ${(monthly.balance || 0) >= 0 ? 'text-income' : 'text-expense'}`}>
             {(monthly.balance || 0) >= 0 ? '+' : ''}{formatMoney(monthly.balance)}
           </div>
         </div>

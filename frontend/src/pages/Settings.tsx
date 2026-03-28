@@ -14,9 +14,9 @@ export default function Settings() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-4 lg:space-y-6">
       {/* User info */}
-      <div className="bg-surface rounded-xl border border-border p-6">
+      <div className="bg-surface rounded-xl border border-border p-4 lg:p-6">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full bg-accent/10 flex items-center justify-center text-xl font-bold text-accent">
             {user?.username?.[0]?.toUpperCase() || '?'}
@@ -29,7 +29,7 @@ export default function Settings() {
       </div>
 
       {/* Delete confirmation strategy */}
-      <div className="bg-surface rounded-xl border border-border p-6">
+      <div className="bg-surface rounded-xl border border-border p-4 lg:p-6">
         <h2 className="text-sm font-semibold mb-3">交易删除确认</h2>
         <p className="text-sm text-text-secondary mb-4">删除交易记录时的确认策略</p>
         <div className="space-y-2">
@@ -50,7 +50,7 @@ export default function Settings() {
       </div>
 
       {/* Feishu binding */}
-      <div className="bg-surface rounded-xl border border-border p-6">
+      <div className="bg-surface rounded-xl border border-border p-4 lg:p-6">
         <h2 className="text-sm font-semibold mb-3">飞书绑定</h2>
         <div className="text-sm text-text-secondary mb-3">绑定飞书账号以接收通知</div>
         <button className="w-full py-2.5 border border-accent text-accent rounded-lg text-sm font-medium hover:bg-accent/5 transition-colors">
@@ -59,7 +59,7 @@ export default function Settings() {
       </div>
 
       {/* Change password */}
-      <div className="bg-surface rounded-xl border border-border p-6">
+      <div className="bg-surface rounded-xl border border-border p-4 lg:p-6">
         <h2 className="text-sm font-semibold mb-3">账户安全</h2>
         <button onClick={() => nav('/change-password')}
           className="w-full py-2.5 bg-accent text-white rounded-lg text-sm font-medium hover:bg-accent-hover transition-colors">

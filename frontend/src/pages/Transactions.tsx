@@ -1,9 +1,24 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { formatMoney } from '../lib/utils'
 import { api } from '../api'
 
 const PAGE_SIZE = 20
+
+function MobileFilterToggle({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false)
+  const hasActive = false // simple toggle
+  return (
+    <div>
+      <button onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 text-xs text-text-secondary hover:text-text transition-colors lg:hidden">
+        <svg className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+        筛选条件
+      </button>
+      <div className={`${open ? '' : 'hidden'} lg:block`}>{children}</div>
+    </div>
+  )
+}
 
 export default function Transactions() {
   const nav = useNavigate()
@@ -67,7 +82,7 @@ export default function Transactions() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 lg:space-y-4">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="text-sm text-text-secondary">共 {total} 条记录</div>
@@ -77,30 +92,36 @@ export default function Transactions() {
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-3 flex-wrap">
+      {/* Filters - mobile: type tabs + collapsible filters */}
+      <div className="space-y-2">
+        {/* Type tabs - always visible */}
         <div className="flex bg-surface border border-border rounded-lg overflow-hidden">
           {['all', 'expense', 'income'].map(v => (
             <button key={v} onClick={() => { setTypeFilter(v); setPage(1) }}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${typeFilter === v ? 'bg-accent text-accent-foreground' : 'text-text-secondary hover:text-text'}`}>
+              className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${typeFilter === v ? 'bg-accent text-accent-foreground' : 'text-text-secondary hover:text-text'}`}>
               {{ all: '全部', expense: '支出', income: '收入' }[v]}
             </button>
           ))}
         </div>
-        <select value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPage(1) }}
-          className="px-3 py-2 bg-surface border border-border rounded-lg text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent/50">
-          <option value="">全部分类</option>
-          {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-        <select value={accountFilter} onChange={e => { setAccountFilter(e.target.value); setPage(1) }}
-          className="px-3 py-2 bg-surface border border-border rounded-lg text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent/50">
-          <option value="">全部账户</option>
-          {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.name}</option>)}
-        </select>
-        <input type="month" value={monthFilter} onChange={e => { setMonthFilter(e.target.value); setPage(1) }}
-          className="px-3 py-2 bg-surface border border-border rounded-lg text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent/50" />
-        <input type="text" value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder="搜索备注..."
-          className="px-3 py-2 bg-surface border border-border rounded-lg text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/50" />
+        {/* Collapsible filters */}
+        <MobileFilterToggle>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+            <select value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPage(1) }}
+              className="col-span-1 px-3 py-2 bg-surface border border-border rounded-lg text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent/50">
+              <option value="">全部分类</option>
+              {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            <select value={accountFilter} onChange={e => { setAccountFilter(e.target.value); setPage(1) }}
+              className="col-span-1 px-3 py-2 bg-surface border border-border rounded-lg text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent/50">
+              <option value="">全部账户</option>
+              {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+            <input type="month" value={monthFilter} onChange={e => { setMonthFilter(e.target.value); setPage(1) }}
+              className="col-span-1 px-3 py-2 bg-surface border border-border rounded-lg text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent/50" />
+            <input type="text" value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder="搜索备注..."
+              className="col-span-2 lg:col-span-1 px-3 py-2 bg-surface border border-border rounded-lg text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/50" />
+          </div>
+        </MobileFilterToggle>
       </div>
 
       {/* Table - desktop */}

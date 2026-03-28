@@ -64,7 +64,7 @@ export const api = {
     request<{ token: string; user: User }>('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
 
   changePassword: (oldPassword: string, newPassword: string) =>
-    request('/auth/change-password', { method: 'POST', body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }) }),
+    request('/users/me/password', { method: 'PUT', body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }) }),
 
   // Transactions
   getTransactions: (params?: Record<string, string>) => {

@@ -120,10 +120,10 @@ export default function Subscriptions() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       {/* Alert banner */}
       {upcoming.length > 0 && (
-        <div className="bg-expense/5 border border-expense/20 rounded-xl p-4">
+        <div className="bg-expense/5 border border-expense/20 rounded-xl p-3.5 lg:p-4">
           <div className="text-sm font-medium text-expense mb-2">即将到期 ({upcoming.length})</div>
           <div className="space-y-1">
             {upcoming.map((s: any) => (
@@ -137,18 +137,18 @@ export default function Subscriptions() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-surface rounded-xl border border-border p-5">
-          <div className="text-sm text-text-secondary">月均订阅</div>
-          <div className="text-2xl font-bold text-expense money mt-1">{formatMoney(totalMonthly)}</div>
+      <div className="grid grid-cols-3 gap-2.5 lg:gap-4">
+        <div className="bg-surface rounded-xl border border-border p-3.5 lg:p-5">
+          <div className="text-xs lg:text-sm text-text-secondary">月均订阅</div>
+          <div className="text-sm lg:text-2xl font-bold text-expense money mt-0.5 lg:mt-1">{formatMoney(totalMonthly)}</div>
         </div>
-        <div className="bg-surface rounded-xl border border-border p-5">
-          <div className="text-sm text-text-secondary">年度预估</div>
-          <div className="text-2xl font-bold text-expense money mt-1">{formatMoney(totalYearly)}</div>
+        <div className="bg-surface rounded-xl border border-border p-3.5 lg:p-5">
+          <div className="text-xs lg:text-sm text-text-secondary">年度预估</div>
+          <div className="text-sm lg:text-2xl font-bold text-expense money mt-0.5 lg:mt-1">{formatMoney(totalYearly)}</div>
         </div>
-        <div className="bg-surface rounded-xl border border-border p-5">
-          <div className="text-sm text-text-secondary">订阅数量</div>
-          <div className="text-2xl font-bold text-text mt-1">{activeSubs.length}</div>
+        <div className="bg-surface rounded-xl border border-border p-3.5 lg:p-5">
+          <div className="text-xs lg:text-sm text-text-secondary">订阅数量</div>
+          <div className="text-sm lg:text-2xl font-bold text-text mt-0.5 lg:mt-1">{activeSubs.length}</div>
         </div>
       </div>
 

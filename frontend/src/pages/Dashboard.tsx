@@ -88,14 +88,14 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 lg:gap-4">
         {cards.map(c => (
-          <div key={c.label} className="bg-surface rounded-xl border border-border p-5 hover:border-border-bright hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] dark:hover:shadow-none transition-all">
-            <div className="text-sm text-text-secondary">{c.label}</div>
-            <div className={`text-2xl font-bold money mt-1 ${c.color}`}>
-              {c.value >= 0 && c.label !== '总资产' ? '+' : ''}{formatMoney(c.value)}
+          <div key={c.label} className="bg-surface rounded-xl border border-border p-3.5 lg:p-5 hover:border-border-bright hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] dark:hover:shadow-none transition-all">
+            <div className="text-xs lg:text-sm text-text-secondary">{c.label}</div>
+            <div className={`text-lg lg:text-2xl font-bold money mt-0.5 lg:mt-1 ${c.color}`}>
+              {c.label === '本月支出' ? '-' : c.value >= 0 && c.label !== '总资产' ? '+' : ''}{formatMoney(c.value)}
             </div>
           </div>
         ))}

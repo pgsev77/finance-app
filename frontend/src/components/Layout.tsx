@@ -148,7 +148,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       {sidebarOpen && <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
       {/* Main content area - no separate header, no max-w */}
-      <div className="lg:ml-60 min-h-screen pb-20 lg:pb-0">
+      <div className="lg:ml-60 min-h-screen pb-[4.5rem] lg:pb-0">
         {/* Mobile top bar */}
         <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border h-14 flex items-center px-4 lg:hidden">
           <button onClick={() => setSidebarOpen(true)} className="mr-3 text-muted-foreground">
@@ -164,7 +164,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
 
         {/* Page content - full width, pages handle their own padding */}
-        <main className="p-4 lg:p-6">
+        <main className="px-3 py-4 lg:px-6 lg:py-6">
           {children}
         </main>
       </div>

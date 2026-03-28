@@ -1,7 +1,7 @@
 FROM node:20-alpine AS frontend-build
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm install
+RUN npm install --registry=https://registry.npmmirror.com
 COPY frontend/ ./
 RUN npm run build
 
@@ -10,7 +10,7 @@ WORKDIR /app
 
 # Backend
 COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 COPY backend/ ./backend/
 
 # Frontend static files

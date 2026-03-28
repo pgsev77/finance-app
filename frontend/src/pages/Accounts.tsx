@@ -68,11 +68,11 @@ export default function Accounts() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       {/* Total banner */}
-      <div className="bg-gradient-to-r from-accent to-accent-hover rounded-xl p-6 text-white">
+      <div className="bg-gradient-to-r from-accent to-accent-hover rounded-xl p-4 lg:p-6 text-white">
         <div className="text-sm opacity-80">总资产</div>
-        <div className="text-3xl font-bold mt-1">{formatMoney(totalBalance)}</div>
+        <div className="text-2xl lg:text-3xl font-bold mt-1">{formatMoney(totalBalance)}</div>
         <div className="text-sm opacity-70 mt-2">共 {activeAccounts.length} 个账户</div>
       </div>
 
@@ -110,9 +110,9 @@ export default function Accounts() {
       )}
 
       {/* Account cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
         {activeAccounts.map((a: any) => (
-          <div key={a.id} className="bg-surface rounded-xl border border-border p-5">
+          <div key={a.id} className="bg-surface rounded-xl border border-border p-3.5 lg:p-5">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${typeColors[a.type] || 'bg-gray-500/10 text-gray-500'}`}>
                 {typeIcons[a.type] || '?'}
