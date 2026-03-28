@@ -94,7 +94,7 @@ export default function Accounts() {
       )}
 
       {/* Account cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {activeAccounts.map((a: any) => (
           <div key={a.id} className="bg-surface rounded-xl border border-border p-5">
             <div className="flex items-center gap-3">

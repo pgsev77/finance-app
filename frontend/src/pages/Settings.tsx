@@ -14,7 +14,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl space-y-6">
       {/* User info */}
       <div className="bg-surface rounded-xl border border-border p-6">
         <div className="flex items-center gap-4">
@@ -22,7 +22,7 @@ export default function Settings() {
             {user?.username?.[0]?.toUpperCase() || '?'}
           </div>
           <div>
-            <div className="text-base font-semibold">{user?.username}</div>
+            <div className="text-lg font-semibold">{user?.username}</div>
             <div className="text-sm text-text-secondary">{user?.role === 'admin' ? '管理员' : '普通用户'}</div>
           </div>
         </div>

@@ -57,14 +57,14 @@ export default function Subscriptions() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-surface rounded-xl border border-border p-4">
-          <div className="text-xs text-text-secondary">月均订阅</div>
-          <div className="text-lg font-bold text-expense mt-1">{formatMoney(totalMonthly)}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-surface rounded-xl border border-border p-5">
+          <div className="text-sm text-text-secondary">月均订阅</div>
+          <div className="text-2xl font-bold text-expense mt-1">{formatMoney(totalMonthly)}</div>
         </div>
-        <div className="bg-surface rounded-xl border border-border p-4">
-          <div className="text-xs text-text-secondary">年度预估</div>
-          <div className="text-lg font-bold text-expense mt-1">{formatMoney(totalYearly)}</div>
+        <div className="bg-surface rounded-xl border border-border p-5">
+          <div className="text-sm text-text-secondary">年度预估</div>
+          <div className="text-2xl font-bold text-expense mt-1">{formatMoney(totalYearly)}</div>
         </div>
       </div>
 

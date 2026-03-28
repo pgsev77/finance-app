@@ -53,11 +53,11 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {cards.map(c => (
-          <div key={c.label} className="bg-surface rounded-xl border border-border p-4">
-            <div className="text-xs text-text-secondary mb-1">{c.label}</div>
-            <div className={`text-lg font-bold ${c.color}`}>
+          <div key={c.label} className="bg-surface rounded-xl border border-border p-5">
+            <div className="text-sm text-text-secondary mb-1">{c.label}</div>
+            <div className={`text-2xl font-bold ${c.color}`}>
               {c.value >= 0 ? '+' : ''}{formatMoney(c.value)}
             </div>
           </div>
