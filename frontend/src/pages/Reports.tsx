@@ -101,9 +101,9 @@ export default function Reports() {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={categories} dataKey="amount" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={50} paddingAngle={2}>
-                  {categories.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                  {categories.map((entry: any, i: number) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
-                <Tooltip formatter={(v: number) => formatMoney(v)} />
+                <Tooltip formatter={(v) => formatMoney(Number(v))} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -146,7 +146,7 @@ export default function Reports() {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'var(--color-text-secondary)' }} />
                 <YAxis tick={{ fontSize: 12, fill: 'var(--color-text-secondary)' }} tickFormatter={(v: number) => `${v / 10000}w`} />
-                <Tooltip formatter={(v: number) => formatMoney(v)} />
+                <Tooltip formatter={(v) => formatMoney(Number(v))} />
                 <Legend />
                 <Bar dataKey="income" name="收入" fill="var(--color-income)" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="expense" name="支出" fill="var(--color-expense)" radius={[4, 4, 0, 0]} />

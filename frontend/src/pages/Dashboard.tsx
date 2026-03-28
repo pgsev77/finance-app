@@ -39,7 +39,6 @@ export default function Dashboard() {
       const total = accs.filter((a: any) => a.is_active !== false).reduce((s: number, a: any) => s + (a.balance || 0), 0)
       setTotalAssets(total)
       // 7-day trend
-      const trend7 = await api.getTrend(1)
       // Get daily trend from the monthly data - we need a daily endpoint
       // Use transactions from last 7 days for now
       const now = new Date()
@@ -118,7 +117,7 @@ export default function Dashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis dataKey="date" tick={{ fontSize: 12, fill: 'var(--color-text-secondary)' }} />
                 <YAxis tick={{ fontSize: 12, fill: 'var(--color-text-secondary)' }} tickFormatter={(v: number) => `${v / 10000}`} />
-                <Tooltip formatter={(v: number) => formatMoney(v)} />
+                <Tooltip formatter={(v) => formatMoney(Number(v))} />
                 <Area type="monotone" dataKey="income" name="收入" stroke="var(--color-income)" fill="var(--color-income)" fillOpacity={0.1} />
                 <Area type="monotone" dataKey="expense" name="支出" stroke="var(--color-expense)" fill="var(--color-expense)" fillOpacity={0.1} />
               </AreaChart>

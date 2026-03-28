@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { getAuth, clearAuth, api } from '../api'
+import { getAuth, clearAuth } from '../api'
 import { useNavigate } from 'react-router-dom'
 
 export default function Settings() {
