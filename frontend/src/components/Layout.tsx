@@ -18,9 +18,9 @@ export function RequireAdmin({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
-// Icon helper
 function Icon({ d, className = "w-4 h-4" }: { d: string; className?: string }) {
-  return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={d} /></svg>
+  return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={d} />
+  </svg>
 }
 
 const icons = {
@@ -36,23 +36,9 @@ const icons = {
   logout: "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1",
 }
 
-const pageTitles: Record<string, string> = {
-  '/dashboard': '仪表盘',
-  '/transactions': '交易记录',
-  '/transactions/new': '新增交易',
-  '/accounts': '账户管理',
-  '/categories': '分类管理',
-  '/reports': '月度报表',
-  '/subscriptions': '订阅管理',
-  '/settings': '个人设置',
-  '/users': '用户管理',
-  '/change-password': '修改密码',
-}
-
 export default function Layout({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [pageTitle, setPageTitle] = useState('')
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -62,21 +48,19 @@ export default function Layout({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    setPageTitle(pageTitles[location.pathname] || '')
     setSidebarOpen(false)
   }, [location])
 
   const mainNav = [
     { path: '/dashboard', label: '仪表盘', icon: icons.dashboard },
     { path: '/transactions', label: '交易记录', icon: icons.transactions },
-    { path: '/transactions/new', label: '记账', icon: icons.newTx },
+    { path: '/reports', label: '报表', icon: icons.reports },
   ]
 
-  const toolNav = [
-    { path: '/reports', label: '报表', icon: icons.reports },
-    { path: '/accounts', label: '账户', icon: icons.accounts },
-    { path: '/categories', label: '分类', icon: icons.categories },
-    { path: '/subscriptions', label: '订阅', icon: icons.subscriptions },
+  const manageNav = [
+    { path: '/accounts', label: '账户管理', icon: icons.accounts },
+    { path: '/categories', label: '分类管理', icon: icons.categories },
+    { path: '/subscriptions', label: '订阅管理', icon: icons.subscriptions },
   ]
 
   const adminNav = user?.role === 'admin' ? [
@@ -85,69 +69,72 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   const mobileNav = [
     { path: '/dashboard', label: '首页', icon: icons.dashboard },
-    { path: '/transactions', label: '交易', icon: icons.transactions },
     { path: '/transactions/new', label: '记账', icon: icons.newTx },
+    { path: '/transactions', label: '交易', icon: icons.transactions },
     { path: '/reports', label: '报表', icon: icons.reports },
     { path: '/settings', label: '设置', icon: icons.settings },
   ]
 
   const logout = () => { clearAuth(); navigate('/login') }
-
   const isActive = (path: string) => location.pathname === path
 
-  const NavItem = ({ item, compact }: { item: { path: string; label: string; icon: string }; compact?: boolean }) => (
-    <button onClick={() => navigate(item.path)}
-      className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${isActive(item.path) ? 'bg-accent/10 text-accent' : 'text-text-secondary hover:bg-text/5 hover:text-text'}`}>
-      <Icon d={item.icon} />
-      {!compact && <span>{item.label}</span>}
-    </button>
-  )
-
-  const NavLabel = ({ children }: { children: ReactNode }) => (
-    <div className="px-3 pt-5 pb-2 text-[11px] font-semibold text-text-secondary/60 uppercase tracking-wider">{children}</div>
-  )
-
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="min-h-screen bg-muted/40">
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 w-60 bg-surface border-r border-border z-40 transform transition-transform duration-200 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 w-60 bg-background border-r border-border z-40 transform transition-transform duration-200 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex flex-col h-full">
-          {/* Brand - h-14 aligned with header */}
-          <div className="h-14 flex items-center px-5 border-b border-border">
-            <span className="text-lg font-bold tracking-tight text-text">账簿</span>
+          {/* Brand */}
+          <div className="h-14 flex items-center px-5">
+            <span className="text-base font-semibold tracking-tight">账簿</span>
           </div>
           {/* Navigation */}
-          <nav className="flex-1 py-2 px-3 overflow-y-auto">
-            <NavLabel>概览</NavLabel>
-            <div className="space-y-0.5">
-              {mainNav.map(item => <NavItem key={item.path} item={item} />)}
+          <nav className="flex-1 px-3 overflow-y-auto">
+            <div className="space-y-1">
+              {mainNav.map(item => (
+                <button key={item.path} onClick={() => navigate(item.path)}
+                  className={`w-full text-left flex items-center gap-3 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive(item.path) ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/10 hover:text-accent-foreground'}`}>
+                  <Icon d={item.icon} />
+                  <span>{item.label}</span>
+                </button>
+              ))}
             </div>
-            <NavLabel>工具</NavLabel>
-            <div className="space-y-0.5">
-              {toolNav.map(item => <NavItem key={item.path} item={item} />)}
-              {adminNav.map(item => <NavItem key={item.path} item={item} />)}
+            <div className="mt-6 space-y-1">
+              {manageNav.map(item => (
+                <button key={item.path} onClick={() => navigate(item.path)}
+                  className={`w-full text-left flex items-center gap-3 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive(item.path) ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/10 hover:text-accent-foreground'}`}>
+                  <Icon d={item.icon} />
+                  <span>{item.label}</span>
+                </button>
+              ))}
+              {adminNav.map(item => (
+                <button key={item.path} onClick={() => navigate(item.path)}
+                  className={`w-full text-left flex items-center gap-3 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive(item.path) ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/10 hover:text-accent-foreground'}`}>
+                  <Icon d={item.icon} />
+                  <span>{item.label}</span>
+                </button>
+              ))}
             </div>
           </nav>
-          {/* Bottom section */}
+          {/* Bottom: settings + user + logout */}
           <div className="border-t border-border px-3 py-3 space-y-0.5">
             <button onClick={() => navigate('/settings')}
-              className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${isActive('/settings') ? 'bg-accent/10 text-accent' : 'text-text-secondary hover:bg-text/5 hover:text-text'}`}>
+              className={`w-full text-left flex items-center gap-3 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/settings') ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/10 hover:text-accent-foreground'}`}>
               <Icon d={icons.settings} />
               <span>设置</span>
             </button>
             {user && (
               <>
-                <div className="flex items-center gap-3 px-3 py-2 mt-1">
-                  <div className="w-7 h-7 rounded-full bg-accent/15 flex items-center justify-center text-xs font-semibold text-accent flex-shrink-0">
+                <div className="flex items-center gap-2.5 px-2.5 py-2 mt-1 rounded-md hover:bg-accent/5 cursor-pointer" onClick={() => navigate('/settings')}>
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary flex-shrink-0">
                     {user.username[0]?.toUpperCase()}
                   </div>
-                  <div className="min-w-0">
-                    <div className="text-[13px] font-medium truncate">{user.username}</div>
-                    <div className="text-[11px] text-text-secondary truncate">{user.role === 'admin' ? '管理员' : '用户'}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium truncate">{user.username}</div>
+                    <div className="text-xs text-muted-foreground truncate">{user.role === 'admin' ? '管理员' : '用户'}</div>
                   </div>
                 </div>
                 <button onClick={logout}
-                  className="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-text-secondary hover:text-expense hover:bg-expense/5 transition-colors">
+                  className="w-full text-left flex items-center gap-3 px-2.5 py-1.5 rounded-md text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors">
                   <Icon d={icons.logout} />
                   <span>退出登录</span>
                 </button>
@@ -160,31 +147,36 @@ export default function Layout({ children }: { children: ReactNode }) {
       {/* Mobile overlay */}
       {sidebarOpen && <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
-      {/* Main area */}
-      <div className="lg:ml-60 pb-20 lg:pb-0">
-        {/* Header - h-14 aligned with sidebar */}
-        <header className="sticky top-0 z-20 bg-bg/80 backdrop-blur-lg border-b border-border h-14 flex items-center px-4 lg:px-6">
-          <button onClick={() => setSidebarOpen(true)} className="lg:hidden mr-3 text-text-secondary hover:text-text -ml-1">
+      {/* Main content area - no separate header, no max-w */}
+      <div className="lg:ml-60 min-h-screen pb-20 lg:pb-0">
+        {/* Mobile top bar */}
+        <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border h-14 flex items-center px-4 lg:hidden">
+          <button onClick={() => setSidebarOpen(true)} className="mr-3 text-muted-foreground">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
-          <h1 className="text-sm font-semibold flex-1">{pageTitle}</h1>
+          <span className="text-sm font-semibold flex-1">账簿</span>
           <ThemeToggle />
-        </header>
+        </div>
 
-        {/* Page content */}
-        <main className="p-4 lg:p-6 max-w-5xl mx-auto">
+        {/* Desktop top bar - minimal, right-aligned */}
+        <div className="hidden lg:flex items-center justify-end h-14 px-6 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-20">
+          <ThemeToggle />
+        </div>
+
+        {/* Page content - full width, pages handle their own padding */}
+        <main className="p-4 lg:p-6">
           {children}
         </main>
       </div>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-surface/80 backdrop-blur-lg border-t border-border z-40 lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-md border-t border-border z-40 lg:hidden">
         <div className="flex">
           {mobileNav.map(item => (
             <button key={item.path} onClick={() => navigate(item.path)}
-              className={`flex-1 flex flex-col items-center py-2.5 text-[10px] font-medium transition-colors ${isActive(item.path) ? 'text-accent' : 'text-text-secondary'}`}>
+              className={`flex-1 flex flex-col items-center py-2 text-[10px] font-medium transition-colors ${isActive(item.path) ? 'text-accent' : 'text-muted-foreground'}`}>
               <Icon d={item.icon} className="w-5 h-5" />
-              <span className="mt-1">{item.label}</span>
+              <span className="mt-0.5">{item.label}</span>
             </button>
           ))}
         </div>
@@ -196,7 +188,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 function ThemeToggle() {
   const { theme, toggle } = useTheme()
   return (
-    <button onClick={toggle} className="p-2 rounded-lg hover:bg-text/5 text-text-secondary hover:text-text transition-colors" title="切换主题">
+    <button onClick={toggle} className="p-2 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent-foreground transition-colors" title="切换主题">
       {theme === 'light' ? (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
       ) : (
