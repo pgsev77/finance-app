@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #f8f8fa;
+  --color-surface: #ffffff;
+  --color-border: #e5e5ea;
+  --color-text: #1d1d1f;
+  --color-text-secondary: #86868b;
+  --color-accent: #b8860b;
+  --color-accent-hover: #a07608;
+  --color-income: #34a853;
+  --color-expense: #ea4335;
+}
+
+.dark {
+  --color-bg: #111115;
+  --color-surface: #18181f;
+  --color-border: #252530;
+  --color-text: #eae8e4;
+  --color-text-secondary: #8e8e93;
+  --color-accent: #c8965a;
+  --color-accent-hover: #b5843e;
+  --color-income: #4aaa7a;
+  --color-expense: #d45454;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+
+/* Recharts dark */
+.dark .recharts-cartesian-axis-tick-value { fill: var(--color-text-secondary); }
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip { background: var(--color-surface) !important; border-color: var(--color-border) !important; }
