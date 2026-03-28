@@ -1,18 +1,34 @@
+import { toast } from 'sonner'
+import type {
+  User,
+  Account,
+  AccountCreate,
+  AccountUpdate,
+  Category,
+  CategoryCreate,
+  CategoryUpdate,
+  Transaction,
+  TransactionCreate,
+  TransactionUpdate,
+  Subscription,
+  SubscriptionCreate,
+  SubscriptionUpdate,
+  SubscriptionCategory,
+  SubscriptionSummary,
+  MonthlyReport,
+  TrendPoint,
+  PaginatedResponse,
+  UserSettings,
+} from '@/types'
+
+export type { User }
+
 const BASE = '/api/v1'
 
 function getToken(): string | null {
   return localStorage.getItem('token')
 }
 
-export interface User {
-  id: number
-  username: string
-  role: 'admin' | 'user'
-  is_active: boolean
-  force_change_password: boolean
-}
-
-// 保存用户信息
 export function saveAuth(token: string, user: User) {
   localStorage.setItem('token', token)
   localStorage.setItem('user', JSON.stringify(user))
@@ -30,7 +46,6 @@ export function clearAuth() {
   localStorage.removeItem('user')
 }
 
-// fetch 封装，自动解包 {success, data} 响应
 async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const token = getToken()
   const res = await fetch(`${BASE}${path}`, {
@@ -48,10 +63,11 @@ async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
   }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail || `请求失败 ${res.status}`)
+    const msg = body.detail || `请求失败 ${res.status}`
+    toast.error(msg)
+    throw new Error(msg)
   }
   const json = await res.json()
-  // 自动解包 {success: true, data: ...} 格式
   if (json && typeof json === 'object' && json.success === true && 'data' in json) {
     return json.data as T
   }
@@ -69,53 +85,63 @@ export const api = {
   // Transactions
   getTransactions: (params?: Record<string, string>) => {
     const q = params ? '?' + new URLSearchParams(params).toString() : ''
-    return request<{ items: any[]; total: number; page: number; page_size: number }>(`/transactions${q}`)
+    return request<PaginatedResponse<Transaction>>(`/transactions${q}`)
   },
-  createTransaction: (data: any) =>
-    request('/transactions', { method: 'POST', body: JSON.stringify(data) }),
+  createTransaction: (data: TransactionCreate) =>
+    request<Transaction>('/transactions', { method: 'POST', body: JSON.stringify(data) }),
+  updateTransaction: (id: number, data: TransactionUpdate) =>
+    request<Transaction>(`/transactions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteTransaction: (id: number) =>
+    request(`/transactions/${id}`, { method: 'DELETE' }),
 
   // Accounts
-  getAccounts: () => request<any[]>('/accounts'),
-  createAccount: (data: any) =>
-    request('/accounts', { method: 'POST', body: JSON.stringify(data) }),
-  updateAccount: (id: number, data: any) =>
-    request(`/accounts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  getAccounts: () => request<Account[]>('/accounts'),
+  createAccount: (data: AccountCreate) =>
+    request<Account>('/accounts', { method: 'POST', body: JSON.stringify(data) }),
+  updateAccount: (id: number, data: AccountUpdate) =>
+    request<Account>(`/accounts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteAccount: (id: number) =>
     request(`/accounts/${id}`, { method: 'DELETE' }),
 
   // Categories
-  getCategories: () => request<any[]>('/categories'),
+  getCategories: () => request<Category[]>('/categories'),
+  createCategory: (data: CategoryCreate) =>
+    request<Category>('/categories', { method: 'POST', body: JSON.stringify(data) }),
+  updateCategory: (id: number, data: CategoryUpdate) =>
+    request<Category>(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteCategory: (id: number) =>
+    request(`/categories/${id}`, { method: 'DELETE' }),
 
   // Reports
   getMonthlyReport: (year: number, month: number) =>
-    request<any>(`/reports/monthly?year=${year}&month=${month}`),
+    request<MonthlyReport>(`/reports/monthly?year=${year}&month=${month}`),
   getTrend: (months?: number) =>
-    request<any[]>(`/reports/trend?months=${months || 6}`),
+    request<TrendPoint[]>(`/reports/trend?months=${months || 6}`),
 
   // Subscriptions
-  getSubscriptions: () => request<any[]>('/subscriptions'),
-  getSubscriptionSummary: () => request<any>('/subscriptions/summary'),
+  getSubscriptions: () => request<Subscription[]>('/subscriptions'),
+  getSubscriptionSummary: () => request<SubscriptionSummary>('/subscriptions/summary'),
   getUpcomingSubscriptions: (days?: number) =>
-    request<any[]>(`/subscriptions/upcoming?days=${days || 7}`),
-  createSubscription: (data: any) =>
-    request('/subscriptions', { method: 'POST', body: JSON.stringify(data) }),
-  updateSubscription: (id: number, data: any) =>
-    request(`/subscriptions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    request<Subscription[]>(`/subscriptions/upcoming?days=${days || 7}`),
+  createSubscription: (data: SubscriptionCreate) =>
+    request<Subscription>('/subscriptions', { method: 'POST', body: JSON.stringify(data) }),
+  updateSubscription: (id: number, data: SubscriptionUpdate) =>
+    request<Subscription>(`/subscriptions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteSubscription: (id: number) =>
     request(`/subscriptions/${id}`, { method: 'DELETE' }),
-  getSubscriptionCategories: () => request<any[]>('/subscriptions/categories'),
-  createSubscriptionCategory: (data: any) =>
-    request('/subscriptions/categories', { method: 'POST', body: JSON.stringify(data) }),
+  getSubscriptionCategories: () => request<SubscriptionCategory[]>('/subscriptions/categories'),
+  createSubscriptionCategory: (data: { name: string; icon?: string; color?: string }) =>
+    request<SubscriptionCategory>('/subscriptions/categories', { method: 'POST', body: JSON.stringify(data) }),
 
   // Users (admin)
-  getUsers: () => request<any[]>('/users'),
-  createUser: (data: any) =>
-    request('/users', { method: 'POST', body: JSON.stringify(data) }),
+  getUsers: () => request<User[]>('/users'),
+  createUser: (data: { username: string; password: string; role?: string }) =>
+    request<User>('/users', { method: 'POST', body: JSON.stringify(data) }),
   toggleUser: (id: number) =>
     request(`/users/${id}/toggle`, { method: 'POST' }),
 
   // Settings
-  getSettings: () => request<any>('/settings'),
-  updateSettings: (data: any) =>
+  getSettings: () => request<UserSettings>('/settings'),
+  updateSettings: (data: Partial<UserSettings>) =>
     request('/settings', { method: 'PUT', body: JSON.stringify(data) }),
 }

@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select, func
@@ -11,6 +12,9 @@ from app.models.transaction import Transaction
 from app.models.account import Account
 from app.schemas.transaction import TransactionCreate, TransactionOut, TransactionUpdate
 from app.services.nlp_service import parse_nlp
+from app.services.balance_service import apply_balance, reverse_balance
+
+logger = logging.getLogger("moneyflow.transactions")
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
@@ -20,19 +24,30 @@ async def list_transactions(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     type: str | None = Query(None),
+    category_id: int | None = Query(None),
+    account_id: int | None = Query(None),
+    start_date: datetime.date | None = Query(None),
+    end_date: datetime.date | None = Query(None),
+    search: str | None = Query(None),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    q = select(Transaction).where(Transaction.user_id == current_user.id, Transaction.is_deleted == False)
+    base_filters = [Transaction.user_id == current_user.id, Transaction.is_deleted == False]
     if type:
-        q = q.where(Transaction.type == type)
-    q = q.order_by(Transaction.date.desc(), Transaction.id.desc())
+        base_filters.append(Transaction.type == type)
+    if category_id:
+        base_filters.append(Transaction.category_id == category_id)
+    if account_id:
+        base_filters.append(Transaction.account_id == account_id)
+    if start_date:
+        base_filters.append(Transaction.date >= start_date)
+    if end_date:
+        base_filters.append(Transaction.date <= end_date)
+    if search:
+        base_filters.append(Transaction.note.ilike(f"%{search}%"))
 
-    count_q = select(func.count(Transaction.id)).where(
-        Transaction.user_id == current_user.id, Transaction.is_deleted == False
-    )
-    if type:
-        count_q = count_q.where(Transaction.type == type)
+    q = select(Transaction).where(*base_filters).order_by(Transaction.date.desc(), Transaction.id.desc())
+    count_q = select(func.count(Transaction.id)).where(*base_filters)
     total = (await db.execute(count_q)).scalar()
 
     q = q.offset((page - 1) * page_size).limit(page_size)
@@ -47,22 +62,11 @@ async def create_transaction(req: TransactionCreate, current_user: User = Depend
     db.add(txn)
     await db.flush()
 
-    # 更新账户余额
-    if req.account_id:
-        acc = await db.get(Account, req.account_id)
-        if acc:
-            if req.type == "expense":
-                acc.balance -= req.amount
-            elif req.type == "income":
-                acc.balance += req.amount
-            elif req.type == "transfer" and req.to_account_id:
-                acc.balance -= req.amount
-                to_acc = await db.get(Account, req.to_account_id)
-                if to_acc:
-                    to_acc.balance += req.amount
+    await apply_balance(db, req.type, req.amount, req.account_id, req.to_account_id)
 
     await db.commit()
     await db.refresh(txn)
+    logger.info("Transaction created: id=%d, user=%d, type=%s, amount=%d", txn.id, current_user.id, req.type, req.amount)
     return {"success": True, "data": TransactionOut.model_validate(txn).model_dump()}
 
 
@@ -72,28 +76,17 @@ async def update_transaction(transaction_id: int, req: TransactionUpdate, curren
     if not txn or txn.user_id != current_user.id or txn.is_deleted:
         raise HTTPException(status_code=404, detail="交易不存在")
 
-    # 反向调整旧余额
-    if txn.account_id:
-        acc = await db.get(Account, txn.account_id)
-        if acc:
-            if txn.type == "expense":
-                acc.balance += txn.amount
-            elif txn.type == "income":
-                acc.balance -= txn.amount
+    # Reverse old balance
+    await reverse_balance(db, txn.type, txn.amount, txn.account_id)
 
     for k, v in req.model_dump(exclude_unset=True).items():
         setattr(txn, k, v)
 
-    # 正向调整新余额
-    if txn.account_id:
-        acc = await db.get(Account, txn.account_id)
-        if acc:
-            if txn.type == "expense":
-                acc.balance -= txn.amount
-            elif txn.type == "income":
-                acc.balance += txn.amount
+    # Apply new balance
+    await apply_balance(db, txn.type, txn.amount, txn.account_id)
 
     await db.commit()
+    logger.info("Transaction updated: id=%d, user=%d", transaction_id, current_user.id)
     return {"success": True, "data": TransactionOut.model_validate(txn).model_dump()}
 
 
@@ -104,15 +97,10 @@ async def delete_transaction(transaction_id: int, current_user: User = Depends(g
         raise HTTPException(status_code=404, detail="交易不存在")
 
     txn.is_deleted = True
-    if txn.account_id:
-        acc = await db.get(Account, txn.account_id)
-        if acc:
-            if txn.type == "expense":
-                acc.balance += txn.amount
-            elif txn.type == "income":
-                acc.balance -= txn.amount
+    await reverse_balance(db, txn.type, txn.amount, txn.account_id)
 
     await db.commit()
+    logger.info("Transaction deleted: id=%d, user=%d", transaction_id, current_user.id)
     return {"success": True, "data": None}
 
 

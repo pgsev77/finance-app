@@ -1,3 +1,10 @@
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
 // 金额: 分 -> 元
 export function formatMoney(cents: number): string {
   return (cents / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')

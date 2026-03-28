@@ -18,9 +18,10 @@ const statusColor: Record<string, string> = { trial: 'text-accent', active: 'tex
 interface Summary {
   monthly_total: number
   yearly_total: number
-  total_count: number
-  by_category: { category_id: number; category_name: string; icon: string | null; color: string | null; monthly_amount: number; count: number }[]
-  upcoming: { id: number; name: string; amount: number; next_date: string; days_until: number }[]
+  total_count?: number
+  active_count?: number
+  by_category: { category_id: number | null; category_name: string; icon?: string | null; color?: string | null; monthly_amount?: number; total?: number; count: number }[]
+  upcoming: { id: number; name: string; amount: number; next_date: string; days_until?: number }[]
 }
 
 const emptyForm = {
@@ -34,7 +35,7 @@ export default function Subscriptions() {
   const [subs, setSubs] = useState<any[]>([])
   const [summary, setSummary] = useState<Summary | null>(null)
   const [subCategories, setSubCategories] = useState<any[]>([])
-  const [categories, setCategories] = useState<any[]>([])
+  const [_categories, _setCategories] = useState<unknown[]>([])
   const [accs, setAccs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -44,7 +45,7 @@ export default function Subscriptions() {
   useEffect(() => {
     loadData()
     api.getSubscriptionCategories().then(c => setSubCategories(Array.isArray(c) ? c : [])).catch(() => {})
-    api.getCategories().then(c => setCategories(Array.isArray(c) ? c : [])).catch(() => {})
+    api.getCategories().then(c => _setCategories(Array.isArray(c) ? c : [])).catch(() => {})
     api.getAccounts().then(a => setAccs(Array.isArray(a) ? a : [])).catch(() => {})
   }, [])
 
@@ -112,23 +113,21 @@ export default function Subscriptions() {
       setForm(emptyForm)
       setEditing(null)
       await loadData()
-    } catch (err: any) {
-      alert(err.message)
-    }
+    } catch { /* toast handled by api */ }
   }
 
   async function handleDelete(id: number) {
     if (!confirm('确定删除此订阅？')) return
-    try { await api.deleteSubscription(id); await loadData() } catch (err: any) { alert(err.message) }
+    try { await api.deleteSubscription(id); await loadData() } catch { /* toast handled by api */ }
   }
 
   async function handleToggleActive(s: any) {
     const newStatus = s.status === 'paused' ? 'active' : 'paused'
-    try { await api.updateSubscription(s.id, { status: newStatus }); await loadData() } catch (err: any) { alert(err.message) }
+    try { await api.updateSubscription(s.id, { status: newStatus }); await loadData() } catch { /* toast handled by api */ }
   }
 
   async function handleToggleAutoRecord(s: any) {
-    try { await api.updateSubscription(s.id, { auto_record: !s.auto_record }); await loadData() } catch (err: any) { alert(err.message) }
+    try { await api.updateSubscription(s.id, { auto_record: !s.auto_record }); await loadData() } catch { /* toast handled by api */ }
   }
 
   function getTrialDaysLeft(s: any): number | null {
@@ -192,10 +191,11 @@ export default function Subscriptions() {
             <div className="shrink-0">
               <svg viewBox="0 0 100 100" className="w-28 h-28 lg:w-36 lg:h-36">
                 {(() => {
-                  const total = summary.by_category.reduce((s, c) => s + c.monthly_amount, 0)
+                  const total = summary.by_category.reduce((s, c) => s + (c.monthly_amount ?? c.total ?? 0), 0)
                   let offset = 0
                   return summary.by_category.map((cat, i) => {
-                    const pct = total > 0 ? cat.monthly_amount / total : 0
+                    const amt = cat.monthly_amount ?? cat.total ?? 0
+                    const pct = total > 0 ? amt / total : 0
                     const dasharray = `${pct * 100} ${100 - pct * 100}`
                     const el = <circle key={i} cx="50" cy="50" r="40" fill="none"
                       stroke={pieColors[i % pieColors.length]} strokeWidth="20"
@@ -215,7 +215,7 @@ export default function Subscriptions() {
                     <span className="truncate">{cat.category_name}</span>
                     <span className="text-text-secondary">x{cat.count}</span>
                   </div>
-                  <span className="money shrink-0">{formatMoney(cat.monthly_amount)}</span>
+                  <span className="money shrink-0">{formatMoney(cat.monthly_amount ?? cat.total ?? 0)}</span>
                 </div>
               ))}
             </div>

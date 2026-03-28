@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react'
 import { formatMoney } from '../lib/utils'
 import { api } from '../api'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/EmptyState'
+import { BarChart3, ChevronLeft, ChevronRight } from 'lucide-react'
+import type { MonthlyReport, TrendPoint } from '@/types'
 
 const COLORS = ['#ea4335', '#fbbc04', '#4285f4', '#34a853', '#ab47bc', '#78909c', '#ff7043', '#26a69a']
 
@@ -9,8 +13,8 @@ export default function Reports() {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
-  const [monthly, setMonthly] = useState<any>(null)
-  const [trend, setTrend] = useState<any[]>([])
+  const [monthly, setMonthly] = useState<MonthlyReport | null>(null)
+  const [trend, setTrend] = useState<TrendPoint[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -43,11 +47,29 @@ export default function Reports() {
   }
 
   if (loading) {
-    return <div className="text-center text-text-secondary py-12">加载中...</div>
+    return (
+      <div className="space-y-4 lg:space-y-6">
+        <div className="flex justify-center"><Skeleton className="h-6 w-32" /></div>
+        <div className="grid grid-cols-3 gap-2.5 lg:gap-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-surface rounded-xl border border-border p-3.5 lg:p-5">
+              <Skeleton className="h-3 w-12 mb-2" />
+              <Skeleton className="h-7 w-20" />
+            </div>
+          ))}
+        </div>
+        <div className="bg-surface rounded-xl border border-border p-4">
+          <Skeleton className="h-4 w-28 mb-4" />
+          <Skeleton className="h-[250px] w-full rounded-lg" />
+        </div>
+      </div>
+    )
   }
 
   if (!monthly) {
-    return <div className="text-center text-text-secondary py-12">暂无报表数据</div>
+    return (
+      <EmptyState icon={BarChart3} title="暂无报表数据" description="记录交易后即可查看月度报表" />
+    )
   }
 
   const categories = (monthly.by_category || []).map((c: any, i: number) => ({
@@ -66,26 +88,26 @@ export default function Reports() {
     <div className="space-y-4 lg:space-y-6">
       {/* Month picker */}
       <div className="flex items-center justify-center gap-4">
-        <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-surface-hover text-text-secondary hover:text-text transition-colors">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        <button onClick={prevMonth} className="p-2 rounded-xl hover:bg-surface-hover text-text-secondary hover:text-text transition-colors">
+          <ChevronLeft className="w-4 h-4" />
         </button>
         <span className="text-base font-semibold min-w-[120px] text-center">{year}年{month}月</span>
-        <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-surface-hover text-text-secondary hover:text-text transition-colors">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+        <button onClick={nextMonth} className="p-2 rounded-xl hover:bg-surface-hover text-text-secondary hover:text-text transition-colors">
+          <ChevronRight className="w-4 h-4" />
         </button>
       </div>
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-2.5 lg:grid-cols-1 lg:sm:grid-cols-3 lg:gap-4">
-        <div className="bg-surface rounded-xl border border-border p-3.5 lg:p-5">
+        <div className="bg-surface rounded-xl border border-border p-3.5 lg:p-5 hover:border-border-bright transition-all" style={{ boxShadow: 'var(--shadow-card)' }}>
           <div className="text-xs lg:text-sm text-text-secondary">总收入</div>
           <div className="text-base lg:text-2xl font-bold text-income mt-0.5 lg:mt-1">+{formatMoney(monthly.total_income)}</div>
         </div>
-        <div className="bg-surface rounded-xl border border-border p-3.5 lg:p-5">
+        <div className="bg-surface rounded-xl border border-border p-3.5 lg:p-5 hover:border-border-bright transition-all" style={{ boxShadow: 'var(--shadow-card)' }}>
           <div className="text-xs lg:text-sm text-text-secondary">总支出</div>
           <div className="text-base lg:text-2xl font-bold text-expense mt-0.5 lg:mt-1">-{formatMoney(monthly.total_expense)}</div>
         </div>
-        <div className="bg-surface rounded-xl border border-border p-3.5 lg:p-5">
+        <div className="bg-surface rounded-xl border border-border p-3.5 lg:p-5 hover:border-border-bright transition-all" style={{ boxShadow: 'var(--shadow-card)' }}>
           <div className="text-xs lg:text-sm text-text-secondary">结余</div>
           <div className={`text-base lg:text-2xl font-bold mt-0.5 lg:mt-1 ${(monthly.balance || 0) >= 0 ? 'text-income' : 'text-expense'}`}>
             {(monthly.balance || 0) >= 0 ? '+' : ''}{formatMoney(monthly.balance)}

@@ -1,6 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.auth.deps import get_current_user
 from app.auth.jwt import create_access_token
@@ -9,19 +13,25 @@ from app.models.user import User, UserOAuth, UserSettings
 from app.schemas.auth import AutoRegisterRequest, LoginRequest, LoginResponse, UserOut
 from app.services.auth_service import hash_password, verify_password
 
+logger = logging.getLogger("moneyflow.auth")
+limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/login")
-async def login(req: LoginRequest, response: Response, db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def login(request: Request, req: LoginRequest, response: Response, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.username == req.username))
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(req.password, user.password_hash):
+        logger.warning("Failed login attempt for username: %s", req.username)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="用户名或密码错误")
     if not user.is_active:
+        logger.warning("Login attempt for disabled user: %s", req.username)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="用户已禁用")
 
+    logger.info("User logged in: %s (id=%d)", user.username, user.id)
     token = create_access_token(user.id, user.role)
     response.set_cookie("token", token, httponly=True, max_age=7 * 86400, path="/", samesite="lax")
 

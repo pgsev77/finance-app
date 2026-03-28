@@ -33,6 +33,9 @@
   --color-primary-hover: #a07608;
   --color-accent-hover: #a07608;
   --color-border-bright: #d1d1d6;
+  --color-accent-transparent: rgba(184, 134, 11, 0.08);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
 
   --font-serif: Georgia, "Songti SC", "Noto Serif SC", serif;
   --font-sans: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
@@ -71,6 +74,9 @@
   --color-primary-hover: #daa870;
   --color-accent-hover: #daa870;
   --color-border-bright: #2e2e3a;
+  --color-accent-transparent: rgba(200, 150, 90, 0.1);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 * {
@@ -104,3 +110,31 @@ h1, h2, h3, .font-serif {
 
 /* Money display */
 .money { font-family: var(--font-mono); }
+
+/* Page fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Stagger animation for list items */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Smooth card hover */
+.card-hover {
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.card-hover:hover {
+  transform: translateY(-1px);
+}

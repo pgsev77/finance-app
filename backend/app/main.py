@@ -1,11 +1,15 @@
 import os
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
 from app.database import engine, Base
@@ -14,14 +18,29 @@ from app.auth.router import router as auth_router
 from app.routers import users, accounts, categories, transactions, subscriptions, reports, settings as settings_router
 from app.services.auth_service import hash_password
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger("moneyflow")
+
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 同步创建表
+    # Validate settings
+    settings.validate()
+    logger.info("Starting MoneyFlow (env=%s)", settings.ENVIRONMENT)
+
+    # Create tables
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    # 初始化默认admin + 预设分类
+    # Initialize default admin + preset categories
     from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
     async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
@@ -39,8 +58,8 @@ async def lifespan(app: FastAPI):
             )
             db.add(admin)
             await db.flush()
+            logger.info("Created default admin user: %s", settings.DEFAULT_ADMIN_USERNAME)
 
-            # 初始化预设分类
             presets = [
                 ("餐饮", "expense", None, "#ef4444"),
                 ("交通", "expense", None, "#3b82f6"),
@@ -59,7 +78,6 @@ async def lifespan(app: FastAPI):
 
             db.add(UserSettings(user_id=admin.id))
 
-            # 初始化订阅分类
             sub_cat_presets = [
                 ("流媒体", "play", "#ef4444"),
                 ("音乐", "music", "#8b5cf6"),
@@ -78,20 +96,33 @@ async def lifespan(app: FastAPI):
                 db.add(SubscriptionCategory(user_id=admin.id, name=name, icon=icon, color=color))
 
             await db.commit()
+            logger.info("Initialized preset categories and subscription categories")
 
     yield
+    logger.info("Shutting down MoneyFlow")
 
 
-app = FastAPI(title="MoneyFlow", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="MoneyFlow", version="0.2.0", lifespan=lifespan)
 
+# Rate limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Health check
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
+# API routes
 app.include_router(auth_router, prefix=settings.API_PREFIX)
 app.include_router(users.router, prefix=settings.API_PREFIX)
 app.include_router(settings_router.router, prefix=settings.API_PREFIX)
