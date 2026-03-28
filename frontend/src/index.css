@@ -2,59 +2,75 @@
 
 @theme {
   --color-background: #ffffff;
-  --color-foreground: #0a0a0a;
+  --color-foreground: #1d1d1f;
   --color-card: #ffffff;
-  --color-card-foreground: #0a0a0a;
+  --color-card-foreground: #1d1d1f;
   --color-popover: #ffffff;
-  --color-popover-foreground: #0a0a0a;
-  --color-primary: #18181b;
-  --color-primary-foreground: #fafafa;
-  --color-secondary: #f4f4f5;
-  --color-secondary-foreground: #18181b;
-  --color-muted: #f4f4f5;
-  --color-muted-foreground: #71717a;
-  --color-accent: #18181b;
-  --color-accent-foreground: #fafafa;
-  --color-destructive: #ef4444;
-  --color-border: #e4e4e7;
-  --color-input: #e4e4e7;
-  --color-ring: #18181b;
-  --radius: 0.5rem;
+  --color-popover-foreground: #1d1d1f;
+  --color-primary: #b8860b;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f5f5f7;
+  --color-secondary-foreground: #1d1d1f;
+  --color-muted: #f5f5f7;
+  --color-muted-foreground: #6e6e73;
+  --color-accent: #b8860b;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #ea4335;
+  --color-border: #e5e5ea;
+  --color-input: #e5e5ea;
+  --color-ring: #b8860b;
+  --radius: 0.75rem;
 
-  --color-bg: #f4f4f5;
+  --color-bg: #f0f0f5;
+  --color-bg-subtle: #f8f8fa;
   --color-surface: #ffffff;
-  --color-text: #0a0a0a;
-  --color-text-secondary: #71717a;
-  --color-income: #16a34a;
-  --color-expense: #dc2626;
+  --color-surface-hover: #f5f5f7;
+  --color-text: #1d1d1f;
+  --color-text-secondary: #6e6e73;
+  --color-text-muted: #aeaeb2;
+  --color-income: #34a853;
+  --color-expense: #ea4335;
+  --color-primary-hover: #a07608;
+  --color-accent-hover: #a07608;
+  --color-border-bright: #d1d1d6;
+
+  --font-serif: Georgia, "Songti SC", "Noto Serif SC", serif;
+  --font-sans: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-mono: "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 .dark {
-  --color-background: #09090b;
-  --color-foreground: #fafafa;
-  --color-card: #09090b;
-  --color-card-foreground: #fafafa;
-  --color-popover: #09090b;
-  --color-popover-foreground: #fafafa;
-  --color-primary: #fafafa;
-  --color-primary-foreground: #18181b;
-  --color-secondary: #27272a;
-  --color-secondary-foreground: #fafafa;
-  --color-muted: #27272a;
-  --color-muted-foreground: #a1a1aa;
-  --color-accent: #fafafa;
-  --color-accent-foreground: #18181b;
-  --color-destructive: #ef4444;
-  --color-border: #27272a;
-  --color-input: #27272a;
-  --color-ring: #d4d4d8;
+  --color-background: #18181f;
+  --color-foreground: #eae8e4;
+  --color-card: #18181f;
+  --color-card-foreground: #eae8e4;
+  --color-popover: #18181f;
+  --color-popover-foreground: #eae8e4;
+  --color-primary: #c8965a;
+  --color-primary-foreground: #111115;
+  --color-secondary: #1f1f28;
+  --color-secondary-foreground: #eae8e4;
+  --color-muted: #1f1f28;
+  --color-muted-foreground: #94929e;
+  --color-accent: #c8965a;
+  --color-accent-foreground: #111115;
+  --color-destructive: #d45454;
+  --color-border: #252530;
+  --color-input: #252530;
+  --color-ring: #c8965a;
 
-  --color-bg: #09090b;
-  --color-surface: #18181b;
-  --color-text: #fafafa;
-  --color-text-secondary: #a1a1aa;
-  --color-income: #4ade80;
-  --color-expense: #f87171;
+  --color-bg: #0c0c10;
+  --color-bg-subtle: #111115;
+  --color-surface: #18181f;
+  --color-surface-hover: #1f1f28;
+  --color-text: #eae8e4;
+  --color-text-secondary: #94929e;
+  --color-text-muted: #5c5a66;
+  --color-income: #4aaa7a;
+  --color-expense: #d45454;
+  --color-primary-hover: #daa870;
+  --color-accent-hover: #daa870;
+  --color-border-bright: #2e2e3a;
 }
 
 * {
@@ -64,14 +80,27 @@
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s, color 0.3s;
 }
+
+h1, h2, h3, .font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Recharts dark mode */
+.dark .recharts-cartesian-axis-tick-value { fill: var(--color-text-secondary); }
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip { background: var(--color-surface) !important; border-color: var(--color-border) !important; }
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
 
-.dark .recharts-cartesian-axis-tick-value { fill: var(--color-text-secondary); }
-.dark .recharts-tooltip-wrapper .recharts-default-tooltip { background: var(--color-surface) !important; border-color: var(--color-border) !important; }
+/* Money display */
+.money { font-family: var(--font-mono); }

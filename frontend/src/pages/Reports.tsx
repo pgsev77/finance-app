@@ -6,20 +6,22 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 const COLORS = ['#ea4335', '#fbbc04', '#4285f4', '#34a853', '#ab47bc', '#78909c', '#ff7043', '#26a69a']
 
 export default function Reports() {
+  const now = new Date()
+  const [year, setYear] = useState(now.getFullYear())
+  const [month, setMonth] = useState(now.getMonth() + 1)
   const [monthly, setMonthly] = useState<any>(null)
   const [trend, setTrend] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadReport()
-  }, [])
+  }, [year, month])
 
   async function loadReport() {
     setLoading(true)
     try {
-      const now = new Date()
       const [monthlyRes, trendRes] = await Promise.all([
-        api.getMonthlyReport(now.getFullYear(), now.getMonth() + 1),
+        api.getMonthlyReport(year, month),
         api.getTrend(6),
       ])
       setMonthly(monthlyRes)
@@ -29,6 +31,15 @@ export default function Reports() {
     } finally {
       setLoading(false)
     }
+  }
+
+  function prevMonth() {
+    if (month === 1) { setYear(y => y - 1); setMonth(12) }
+    else setMonth(m => m - 1)
+  }
+  function nextMonth() {
+    if (month === 12) { setYear(y => y + 1); setMonth(1) }
+    else setMonth(m => m + 1)
   }
 
   if (loading) {
@@ -53,6 +64,17 @@ export default function Reports() {
 
   return (
     <div className="space-y-6">
+      {/* Month picker */}
+      <div className="flex items-center justify-center gap-4">
+        <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-surface-hover text-text-secondary hover:text-text transition-colors">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <span className="text-base font-semibold min-w-[120px] text-center">{year}年{month}月</span>
+        <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-surface-hover text-text-secondary hover:text-text transition-colors">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+        </button>
+      </div>
+
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-surface rounded-xl border border-border p-5">

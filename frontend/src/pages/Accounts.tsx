@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { formatMoney } from '../lib/utils'
+import { formatMoney, thisMonthRange } from '../lib/utils'
 import { api } from '../api'
 
 const typeIcons: Record<string, string> = { wechat: '微', alipay: '支', bank: '银', credit_card: '信', cash: '现' }
@@ -8,6 +8,7 @@ const typeLabels: Record<string, string> = { wechat: '微信支付', alipay: '�
 
 export default function Accounts() {
   const [accounts, setAccounts] = useState<any[]>([])
+  const [monthlyStats, setMonthlyStats] = useState<Record<number, { income: number; expense: number }>>({})
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState({ name: '', type: 'bank', balance: '' })
@@ -20,7 +21,22 @@ export default function Accounts() {
     setLoading(true)
     try {
       const data = await api.getAccounts()
-      setAccounts(Array.isArray(data) ? data : [])
+      const accs = Array.isArray(data) ? data : []
+      setAccounts(accs)
+      // Fetch monthly stats per account
+      const { start, end } = thisMonthRange()
+      const allTxns = await api.getTransactions({ start_date: start, end_date: end, page: '1', page_size: '500' })
+      const stats: Record<number, { income: number; expense: number }> = {}
+      accs.forEach((a: any) => { stats[a.id] = { income: 0, expense: 0 } })
+      ;(allTxns.items || []).forEach((t: any) => {
+        const aid = t.account_id
+        if (aid && stats[aid]) {
+          const amt = Math.abs(t.amount || 0)
+          if (t.type === 'income') stats[aid].income += amt
+          else stats[aid].expense += amt
+        }
+      })
+      setMonthlyStats(stats)
     } catch {
       // 静默处理
     } finally {
@@ -106,8 +122,12 @@ export default function Accounts() {
                 <div className="text-xs text-text-secondary">{typeLabels[a.type] || a.type}</div>
               </div>
             </div>
-            <div className={`mt-4 text-xl font-bold ${(a.balance || 0) >= 0 ? 'text-text' : 'text-expense'}`}>
+            <div className={`mt-4 text-xl font-bold money ${(a.balance || 0) >= 0 ? 'text-text' : 'text-expense'}`}>
               {(a.balance || 0) >= 0 ? '' : '-'}{formatMoney(Math.abs(a.balance || 0))}
+            </div>
+            <div className="mt-2 flex gap-3 text-xs">
+              <span className="text-income">收入 {formatMoney(monthlyStats[a.id]?.income || 0)}</span>
+              <span className="text-expense">支出 {formatMoney(monthlyStats[a.id]?.expense || 0)}</span>
             </div>
           </div>
         ))}

@@ -85,7 +85,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <div className="flex flex-col h-full">
           {/* Brand */}
           <div className="h-14 flex items-center px-5">
-            <span className="text-base font-semibold tracking-tight">账簿</span>
+            <span className="text-base font-semibold tracking-tight font-serif">账簿</span>
           </div>
           {/* Navigation */}
           <nav className="flex-1 px-3 overflow-y-auto">
@@ -154,7 +154,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           <button onClick={() => setSidebarOpen(true)} className="mr-3 text-muted-foreground">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
-          <span className="text-sm font-semibold flex-1">账簿</span>
+          <span className="text-sm font-semibold flex-1 font-serif">账簿</span>
           <ThemeToggle />
         </div>
 
