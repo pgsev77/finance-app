@@ -9,7 +9,10 @@ dev.db
 node_modules/
 dist/
 
-# IDE
+# Environment
+.env
+.env.local
+.env.*.local
 .idea/
 .vscode/
 *.swp

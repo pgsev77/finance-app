@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { api } from '../api'
+import { api, saveAuth, getAuth } from '../api'
 
 export default function ChangePassword() {
   const nav = useNavigate()
@@ -18,6 +18,9 @@ export default function ChangePassword() {
     setLoading(true)
     try {
       await api.changePassword(oldPwd, newPwd)
+      // Update localStorage: clear force_change_password flag
+      const auth = getAuth()
+      if (auth) saveAuth(auth.token, { ...auth.user, force_change_password: false })
       nav('/dashboard', { replace: true })
     } catch (err: any) {
       setError(err.message)
