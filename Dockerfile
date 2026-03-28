@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./backend/
 
 # Frontend static files
-COPY --from=frontend-build /app/dist ./static
+COPY --from=frontend-build /app/frontend/dist ./static
 
 WORKDIR /app/backend
 EXPOSE 8000
