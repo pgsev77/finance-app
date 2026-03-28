@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>分类管理 - 账簿</title>
+  <style>
+    :root{
+  --bg-deep:#f0f0f5;--bg:#f8f8fa;--surface:#ffffff;--surface-hover:#f5f5f7;
+  --border:#e5e5ea;--border-light:#d1d1d6;--text:#1d1d1f;--text-secondary:#6e6e73;--text-muted:#aeaeb2;
+  --accent:#b8860b;--accent-hover:#a07608;--accent-dim:rgba(184,134,11,0.08);
+  --income:#34a853;--income-dim:rgba(52,168,83,0.08);
+  --expense:#ea4335;--expense-dim:rgba(234,67,53,0.08);
+  --shadow:0 1px 3px rgba(0,0,0,0.06);--shadow-hover:0 4px 12px rgba(0,0,0,0.08);
+  --header-bg:rgba(248,248,250,0.85);--overlay:rgba(0,0,0,0.3);
+  --chart-grid:#e5e5ea;--chart-label:#aeaeb2;--btn-primary-text:#ffffff;
+--sidebar-w: 240px;
+--font-display: 'Georgia', 'Songti SC', serif;
+--font-body: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+--font-mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+}
+
+body.theme-dark{
+  --bg-deep:#0c0c10;--bg:#111115;--surface:#18181f;--surface-hover:#1f1f28;
+  --border:#252530;--border-light:#2e2e3a;--text:#eae8e4;--text-secondary:#94929e;--text-muted:#5c5a66;
+  --accent:#c8965a;--accent-hover:#daa870;--accent-dim:rgba(200,150,90,0.1);
+  --income:#4aaa7a;--income-dim:rgba(74,170,122,0.1);
+  --expense:#d45454;--expense-dim:rgba(212,84,84,0.1);
+  --shadow:0 1px 3px rgba(0,0,0,0.2);--shadow-hover:0 4px 20px rgba(0,0,0,0.25);
+  --header-bg:rgba(17,17,21,0.8);--overlay:rgba(0,0,0,0.5);
+  --chart-grid:#252530;--chart-label:#5c5a66;--btn-primary-text:#0c0c10;
+}
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {transition:background .3s,color .3s; font-family: var(--font-body); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+    .sidebar { width: var(--sidebar-w); min-height: 100vh; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; left: 0; top: 0; z-index: 100; transition: transform 0.3s; }
+    .sidebar-brand { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+    .sidebar-brand .icon { width: 36px; height: 36px; background: var(--accent-dim); border: 1px solid rgba(200,150,90,0.15); border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sidebar-brand .icon svg { width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .sidebar-brand span { font-family: var(--font-display); font-size: 18px; font-weight: 600; letter-spacing: 1.5px; }
+    .sidebar-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+    .nav-section { margin-bottom: 20px; }
+    .nav-section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); padding: 0 12px 8px; font-weight: 500; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 450; transition: all 0.15s; cursor: pointer; margin-bottom: 2px; }
+    .nav-item:hover { background: var(--surface-hover); color: var(--text); }
+    .nav-item.active { background: var(--accent-dim); color: var(--accent); }
+    .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #c8965a, #8a6530); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; flex-shrink: 0; }
+    .sidebar-footer .user-info { flex: 1; }
+    .sidebar-footer .user-name { font-size: 13px; font-weight: 500; }
+    .sidebar-footer .user-role { font-size: 11px; color: var(--text-muted); }
+
+    .main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; }
+    .header { height: 60px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: var(--header-bg); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50; }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .mobile-menu-btn { display: none; background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; }
+    .mobile-menu-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .header h2 { font-size: 18px; font-weight: 600; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .btn-primary { padding: 8px 18px; background: var(--accent); color: var(--btn-primary-text); border: none; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: var(--font-body); cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+    .content { padding: 28px 32px; max-width: 800px; }
+
+    .cat-group { margin-bottom: 28px; }
+    .cat-group-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
+    .cat-group-title .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .cat-group-title .count { font-size: 12px; color: var(--text-muted); font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+    .cat-list { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .cat-item { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    .cat-item:last-child { border-bottom: none; }
+    .cat-item:hover { background: var(--surface-hover); }
+    .cat-item.child { padding-left: 52px; }
+    .cat-color { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    .cat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+    .cat-name { flex: 1; font-size: 14px; font-weight: 500; }
+    .cat-name.parent { font-weight: 600; }
+    .cat-budget { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+    .cat-actions { display: flex; gap: 4px; }
+    .cat-actions button { width: 30px; height: 30px; border-radius: 6px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .cat-actions button:hover { background: var(--surface-hover); color: var(--text); }
+    .cat-actions button svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+    .cat-toggle { width: 24px; height: 24px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+    .cat-toggle.open { transform: rotate(90deg); }
+    .cat-toggle svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: var(--overlay); z-index: 99; }
+    .mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); z-index: 100; padding: 6px 0; padding-bottom: max(6px, env(safe-area-inset-bottom)); }
+    .mobile-bottom-nav .nav-items { display: flex; justify-content: space-around; }
+    .bnav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 12px; color: var(--text-muted); text-decoration: none; font-size: 10px; font-weight: 500; }
+    .bnav-item.active { color: var(--accent); }
+    .bnav-item svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-menu-btn { display: flex; }
+      .header { padding: 0 16px; }
+      .content { padding: 20px 16px; padding-bottom: 80px; }
+      .cat-item.child { padding-left: 36px; }
+      .mobile-bottom-nav { display: block; }
+    }
+  .theme-toggle{width:36px;height:36px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);transition:all .15s}
+.theme-toggle:hover{background:var(--surface-hover);color:var(--accent);border-color:var(--border-light)}
+.theme-toggle svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.theme-toggle .icon-sun{display:block}
+.theme-toggle .icon-moon{display:none}
+body.theme-dark .theme-toggle .icon-sun{display:none}
+body.theme-dark .theme-toggle .icon-moon{display:block}
+</style>
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><div class="icon"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div><span>账簿</span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section"><div class="nav-section-title">概览</div>
+        <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>仪表盘</a>
+        <a class="nav-item" href="transactions.html"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>交易记录</a>
+      </div>
+      <div class="nav-section"><div class="nav-section-title">管理</div>
+        <a class="nav-item" href="accounts.html"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>账户管理</a>
+        <a class="nav-item active" href="categories.html"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 9h16"/><path d="M9 4v16"/></svg>分类管理</a>
+        <a class="nav-item" href="subscriptions.html"><svg viewBox="0 0 24 24"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>订阅管理</a>
+      </div>
+      <div class="nav-section"><div class="nav-section-title">分析</div>
+        <a class="nav-item" href="reports.html"><svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>月度报表</a>
+      </div>
+    </nav>
+    <div class="sidebar-footer"><div class="avatar">大</div><div class="user-info"><div class="user-name">大哥</div><div class="user-role">管理员</div></div></div>
+  </aside>
+
+  <div class="main">
+    <header class="header">
+      <div class="header-left">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()"><svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+        <h2>分类管理</h2>
+      </div>
+      <div class="header-right"><button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
+        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+        <button class="btn-primary"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>添加分类</button>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- Expense categories -->
+      <div class="cat-group">
+        <div class="cat-group-title">
+          <span class="dot" style="background:var(--expense)"></span>
+          支出分类 <span class="count">16 个</span>
+        </div>
+        <div class="cat-list">
+          <div class="cat-item">
+            <span class="cat-toggle open" onclick="this.classList.toggle('open')"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
+            <span class="cat-color" style="background:#ff9838"></span>
+            <span class="cat-name parent">餐饮</span>
+            <span class="cat-budget">本月 2,836.50</span>
+            <div class="cat-actions">
+              <button title="编辑"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            </div>
+          </div>
+          <div class="cat-item child">
+            <span class="cat-color" style="background:#ffb74d"></span>
+            <span class="cat-name">外卖</span>
+            <span class="cat-budget">856.00</span>
+          </div>
+          <div class="cat-item child">
+            <span class="cat-color" style="background:#ffa726"></span>
+            <span class="cat-name">聚餐</span>
+            <span class="cat-budget">1,280.50</span>
+          </div>
+          <div class="cat-item child">
+            <span class="cat-color" style="background:#ff9800"></span>
+            <span class="cat-name">零食</span>
+            <span class="cat-budget">700.00</span>
+          </div>
+
+          <div class="cat-item">
+            <span class="cat-toggle open" onclick="this.classList.toggle('open')"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
+            <span class="cat-color" style="background:#42a5f5"></span>
+            <span class="cat-name parent">交通</span>
+            <span class="cat-budget">本月 1,245.00</span>
+            <div class="cat-actions">
+              <button title="编辑"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            </div>
+          </div>
+          <div class="cat-item child">
+            <span class="cat-color" style="background:#64b5f6"></span>
+            <span class="cat-name">打车</span>
+            <span class="cat-budget">520.00</span>
+          </div>
+          <div class="cat-item child">
+            <span class="cat-color" style="background:#2196f3"></span>
+            <span class="cat-name">地铁公交</span>
+            <span class="cat-budget">180.00</span>
+          </div>
+          <div class="cat-item child">
+            <span class="cat-color" style="background:#1565c0"></span>
+            <span class="cat-name">加油</span>
+            <span class="cat-budget">545.00</span>
+          </div>
+
+          <div class="cat-item">
+            <span class="cat-toggle" onclick="this.classList.toggle('open')"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
+            <span class="cat-color" style="background:#ba68c8"></span>
+            <span class="cat-name parent">购物</span>
+            <span class="cat-budget">本月 4,299.00</span>
+            <div class="cat-actions">
+              <button title="编辑"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            </div>
+          </div>
+
+          <div class="cat-item">
+            <span class="cat-toggle" onclick="this.classList.toggle('open')"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
+            <span class="cat-color" style="background:#ffa726"></span>
+            <span class="cat-name parent">娱乐</span>
+            <span class="cat-budget">本月 576.00</span>
+            <div class="cat-actions">
+              <button title="编辑"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            </div>
+          </div>
+
+          <div class="cat-item">
+            <span class="cat-toggle" onclick="this.classList.toggle('open')"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
+            <span class="cat-color" style="background:#78909c"></span>
+            <span class="cat-name parent">保险</span>
+            <span class="cat-budget">本月 480.00</span>
+            <div class="cat-actions">
+              <button title="编辑"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            </div>
+          </div>
+
+          <div class="cat-item">
+            <span class="cat-color" style="background:#ef5350"></span>
+            <span class="cat-name parent">住房</span>
+            <span class="cat-budget">本月 3,200.00</span>
+            <div class="cat-actions">
+              <button title="编辑"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Income categories -->
+      <div class="cat-group">
+        <div class="cat-group-title">
+          <span class="dot" style="background:var(--income)"></span>
+          收入分类 <span class="count">5 个</span>
+        </div>
+        <div class="cat-list">
+          <div class="cat-item">
+            <span class="cat-color" style="background:#4aaa7a"></span>
+            <span class="cat-name parent">工资</span>
+            <span class="cat-budget">本月 25,000.00</span>
+            <div class="cat-actions">
+              <button title="编辑"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            </div>
+          </div>
+          <div class="cat-item">
+            <span class="cat-color" style="background:#66bb6a"></span>
+            <span class="cat-name parent">理财收益</span>
+            <span class="cat-budget">本月 3,500.00</span>
+            <div class="cat-actions">
+              <button title="编辑"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            </div>
+          </div>
+          <div class="cat-item">
+            <span class="cat-color" style="background:#26a69a"></span>
+            <span class="cat-name parent">副业</span>
+            <span class="cat-budget">本月 0.00</span>
+            <div class="cat-actions">
+              <button title="编辑"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            </div>
+          </div>
+          <div class="cat-item">
+            <span class="cat-color" style="background:#00897b"></span>
+            <span class="cat-name parent">红包</span>
+            <span class="cat-budget">本月 0.00</span>
+            <div class="cat-actions">
+              <button title="编辑"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            </div>
+          </div>
+          <div class="cat-item">
+            <span class="cat-color" style="background:#7e57c2"></span>
+            <span class="cat-name parent">其他收入</span>
+            <span class="cat-budget">本月 0.00</span>
+            <div class="cat-actions">
+              <button title="编辑"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="mobile-bottom-nav">
+    <div class="nav-items">
+      <a class="bnav-item" href="dashboard.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>仪表盘</a>
+      <a class="bnav-item" href="transactions.html"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>交易</a>
+      <a class="bnav-item" href="transaction-form.html" style="margin-top:-20px;"><svg viewBox="0 0 24 24" style="width:36px;height:36px;background:var(--accent);border-radius:50%;padding:8px;stroke:var(--btn-primary-text);"><path d="M12 5v14M5 12h14"/></svg>记账</a>
+      <a class="bnav-item" href="reports.html"><svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>报表</a>
+      <a class="bnav-item" href="accounts.html"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>我的</a>
+    </div>
+  </nav>
+
+  <script>function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open');}</script>
+</body>
+</html>

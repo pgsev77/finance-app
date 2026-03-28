@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>月度报表 - 账簿</title>
+  <style>
+    :root{
+  --bg-deep:#f0f0f5;--bg:#f8f8fa;--surface:#ffffff;--surface-hover:#f5f5f7;
+  --border:#e5e5ea;--border-light:#d1d1d6;--text:#1d1d1f;--text-secondary:#6e6e73;--text-muted:#aeaeb2;
+  --accent:#b8860b;--accent-hover:#a07608;--accent-dim:rgba(184,134,11,0.08);
+  --income:#34a853;--income-dim:rgba(52,168,83,0.08);
+  --expense:#ea4335;--expense-dim:rgba(234,67,53,0.08);
+  --shadow:0 1px 3px rgba(0,0,0,0.06);--shadow-hover:0 4px 12px rgba(0,0,0,0.08);
+  --header-bg:rgba(248,248,250,0.85);--overlay:rgba(0,0,0,0.3);
+  --chart-grid:#e5e5ea;--chart-label:#aeaeb2;--btn-primary-text:#ffffff;
+--sidebar-w: 240px;
+--font-display: 'Georgia', 'Songti SC', serif;
+--font-body: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+--font-mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+}
+
+body.theme-dark{
+  --bg-deep:#0c0c10;--bg:#111115;--surface:#18181f;--surface-hover:#1f1f28;
+  --border:#252530;--border-light:#2e2e3a;--text:#eae8e4;--text-secondary:#94929e;--text-muted:#5c5a66;
+  --accent:#c8965a;--accent-hover:#daa870;--accent-dim:rgba(200,150,90,0.1);
+  --income:#4aaa7a;--income-dim:rgba(74,170,122,0.1);
+  --expense:#d45454;--expense-dim:rgba(212,84,84,0.1);
+  --shadow:0 1px 3px rgba(0,0,0,0.2);--shadow-hover:0 4px 20px rgba(0,0,0,0.25);
+  --header-bg:rgba(17,17,21,0.8);--overlay:rgba(0,0,0,0.5);
+  --chart-grid:#252530;--chart-label:#5c5a66;--btn-primary-text:#0c0c10;
+}
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {transition:background .3s,color .3s; font-family: var(--font-body); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+    .sidebar { width: var(--sidebar-w); min-height: 100vh; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; left: 0; top: 0; z-index: 100; transition: transform 0.3s; }
+    .sidebar-brand { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+    .sidebar-brand .icon { width: 36px; height: 36px; background: var(--accent-dim); border: 1px solid rgba(200,150,90,0.15); border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sidebar-brand .icon svg { width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .sidebar-brand span { font-family: var(--font-display); font-size: 18px; font-weight: 600; letter-spacing: 1.5px; }
+    .sidebar-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+    .nav-section { margin-bottom: 20px; }
+    .nav-section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); padding: 0 12px 8px; font-weight: 500; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 450; transition: all 0.15s; cursor: pointer; margin-bottom: 2px; }
+    .nav-item:hover { background: var(--surface-hover); color: var(--text); }
+    .nav-item.active { background: var(--accent-dim); color: var(--accent); }
+    .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #c8965a, #8a6530); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; flex-shrink: 0; }
+    .sidebar-footer .user-info { flex: 1; }
+    .sidebar-footer .user-name { font-size: 13px; font-weight: 500; }
+    .sidebar-footer .user-role { font-size: 11px; color: var(--text-muted); }
+
+    .main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; }
+    .header { height: 60px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: var(--header-bg); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50; }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .mobile-menu-btn { display: none; background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; }
+    .mobile-menu-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .header h2 { font-size: 18px; font-weight: 600; }
+    .month-selector { display: flex; align-items: center; gap: 12px; }
+    .month-selector button { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .month-selector button:hover { background: var(--surface-hover); color: var(--text); }
+    .month-selector button svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .month-selector span { font-size: 15px; font-weight: 500; min-width: 100px; text-align: center; }
+
+    .content { padding: 28px 32px; max-width: 1200px; }
+
+    /* Summary row */
+    .report-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+    .report-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; }
+    .report-stat .label { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+    .report-stat .value { font-size: 24px; font-weight: 700; font-family: var(--font-mono); }
+    .report-stat .value.income { color: var(--income); }
+    .report-stat .value.expense { color: var(--expense); }
+    .report-stat .value.balance { color: var(--accent); }
+
+    /* Chart panels */
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .panel-header h3 { font-size: 15px; font-weight: 600; }
+    .panel-body { padding: 24px; }
+
+    /* Pie chart SVG */
+    .pie-chart { display: flex; align-items: center; gap: 24px; }
+    .pie-legend { flex: 1; }
+    .pie-legend-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+    .pie-legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    .pie-legend-name { flex: 1; font-size: 13px; color: var(--text-secondary); }
+    .pie-legend-val { font-size: 13px; font-family: var(--font-mono); font-weight: 500; color: var(--text); }
+    .pie-legend-pct { font-size: 12px; color: var(--text-muted); min-width: 40px; text-align: right; }
+
+    /* Ranking */
+    .rank-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .rank-item:last-child { border-bottom: none; }
+    .rank-num { width: 24px; height: 24px; border-radius: 6px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .rank-num.top { background: var(--accent-dim); color: var(--accent); }
+    .rank-name { flex: 1; font-size: 14px; }
+    .rank-bar { width: 120px; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+    .rank-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+    .rank-amount { font-size: 13px; font-family: var(--font-mono); font-weight: 500; min-width: 80px; text-align: right; }
+
+    /* Trend chart */
+    .trend-chart { width: 100%; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: var(--overlay); z-index: 99; }
+    .mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); z-index: 100; padding: 6px 0; padding-bottom: max(6px, env(safe-area-inset-bottom)); }
+    .mobile-bottom-nav .nav-items { display: flex; justify-content: space-around; }
+    .bnav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 12px; color: var(--text-muted); text-decoration: none; font-size: 10px; font-weight: 500; }
+    .bnav-item.active { color: var(--accent); }
+    .bnav-item svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+    @media (max-width: 1024px) {
+      .chart-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-menu-btn { display: flex; }
+      .header { padding: 0 16px; }
+      .content { padding: 20px 16px; padding-bottom: 80px; }
+      .report-summary { grid-template-columns: 1fr; }
+      .pie-chart { flex-direction: column; }
+      .mobile-bottom-nav { display: block; }
+    }
+  .theme-toggle{width:36px;height:36px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);transition:all .15s}
+.theme-toggle:hover{background:var(--surface-hover);color:var(--accent);border-color:var(--border-light)}
+.theme-toggle svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.theme-toggle .icon-sun{display:block}
+.theme-toggle .icon-moon{display:none}
+body.theme-dark .theme-toggle .icon-sun{display:none}
+body.theme-dark .theme-toggle .icon-moon{display:block}
+</style>
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><div class="icon"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div><span>账簿</span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section"><div class="nav-section-title">概览</div>
+        <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>仪表盘</a>
+        <a class="nav-item" href="transactions.html"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>交易记录</a>
+      </div>
+      <div class="nav-section"><div class="nav-section-title">管理</div>
+        <a class="nav-item" href="accounts.html"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>账户管理</a>
+        <a class="nav-item" href="categories.html"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 9h16"/><path d="M9 4v16"/></svg>分类管理</a>
+        <a class="nav-item" href="subscriptions.html"><svg viewBox="0 0 24 24"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>订阅管理</a>
+      </div>
+      <div class="nav-section"><div class="nav-section-title">分析</div>
+        <a class="nav-item active" href="reports.html"><svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>月度报表</a>
+      </div>
+    </nav>
+    <div class="sidebar-footer"><div class="avatar">大</div><div class="user-info"><div class="user-name">大哥</div><div class="user-role">管理员</div></div></div>
+  </aside>
+
+  <div class="main">
+    <header class="header">
+      <div class="header-left">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()"><svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+        <h2>月度报表</h2>
+      </div>
+      <div class="header-right"><button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
+        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+        <div class="month-selector">
+          <button><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <span>2026年3月</span>
+          <button><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- Summary -->
+      <div class="report-summary">
+        <div class="report-stat">
+          <div class="label">总收入</div>
+          <div class="value income">28,500.00</div>
+        </div>
+        <div class="report-stat">
+          <div class="label">总支出</div>
+          <div class="value expense">12,836.50</div>
+        </div>
+        <div class="report-stat">
+          <div class="label">结余</div>
+          <div class="value balance">15,663.50</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="chart-grid">
+        <!-- Pie: Expense breakdown -->
+        <div class="panel">
+          <div class="panel-header"><h3>支出构成</h3></div>
+          <div class="panel-body">
+            <div class="pie-chart">
+              <svg width="160" height="160" viewBox="0 0 160 160">
+                <!-- Donut chart segments -->
+                <circle cx="80" cy="80" r="60" fill="none" stroke="#ff9838" stroke-width="28" stroke-dasharray="94.2 376.8" stroke-dashoffset="0" transform="rotate(-90 80 80)"/>
+                <circle cx="80" cy="80" r="60" fill="none" stroke="#ef5350" stroke-width="28" stroke-dasharray="75.4 376.8" stroke-dashoffset="-94.2" transform="rotate(-90 80 80)"/>
+                <circle cx="80" cy="80" r="60" fill="none" stroke="#ba68c8" stroke-width="28" stroke-dasharray="75.4 376.8" stroke-dashoffset="-169.6" transform="rotate(-90 80 80)"/>
+                <circle cx="80" cy="80" r="60" fill="none" stroke="#42a5f5" stroke-width="28" stroke-dasharray="50.3 376.8" stroke-dashoffset="-245" transform="rotate(-90 80 80)"/>
+                <circle cx="80" cy="80" r="60" fill="none" stroke="#78909c" stroke-width="28" stroke-dasharray="37.7 376.8" stroke-dashoffset="-295.3" transform="rotate(-90 80 80)"/>
+                <circle cx="80" cy="80" r="60" fill="none" stroke="var(--border)" stroke-width="28" stroke-dasharray="43.8 376.8" stroke-dashoffset="-333" transform="rotate(-90 80 80)"/>
+                <text x="80" y="76" text-anchor="middle" fill="var(--text)" font-size="14" font-weight="600" font-family="var(--font-mono)">12,836</text>
+                <text x="80" y="92" text-anchor="middle" fill="var(--chart-label)" font-size="11" font-family="var(--font-body)">总支出</text>
+              </svg>
+              <div class="pie-legend">
+                <div class="pie-legend-item"><span class="pie-legend-dot" style="background:#ff9838"></span><span class="pie-legend-name">餐饮</span><span class="pie-legend-val">2,836</span><span class="pie-legend-pct">22.1%</span></div>
+                <div class="pie-legend-item"><span class="pie-legend-dot" style="background:#ef5350"></span><span class="pie-legend-name">住房</span><span class="pie-legend-val">3,200</span><span class="pie-legend-pct">24.9%</span></div>
+                <div class="pie-legend-item"><span class="pie-legend-dot" style="background:#ba68c8"></span><span class="pie-legend-name">购物</span><span class="pie-legend-val">4,299</span><span class="pie-legend-pct">33.5%</span></div>
+                <div class="pie-legend-item"><span class="pie-legend-dot" style="background:#42a5f5"></span><span class="pie-legend-name">交通</span><span class="pie-legend-val">1,245</span><span class="pie-legend-pct">9.7%</span></div>
+                <div class="pie-legend-item"><span class="pie-legend-dot" style="background:#78909c"></span><span class="pie-legend-name">保险</span><span class="pie-legend-val">480</span><span class="pie-legend-pct">3.7%</span></div>
+                <div class="pie-legend-item"><span class="pie-legend-dot" style="background:#2e2e3a"></span><span class="pie-legend-name">其他</span><span class="pie-legend-val">776</span><span class="pie-legend-pct">6.1%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ranking -->
+        <div class="panel">
+          <div class="panel-header"><h3>支出排行</h3></div>
+          <div class="panel-body">
+            <div class="rank-item">
+              <span class="rank-num top">1</span>
+              <span class="rank-name">购物</span>
+              <div class="rank-bar"><div class="rank-bar-fill" style="width:100%;background:#ba68c8"></div></div>
+              <span class="rank-amount">4,299.00</span>
+            </div>
+            <div class="rank-item">
+              <span class="rank-num top">2</span>
+              <span class="rank-name">住房</span>
+              <div class="rank-bar"><div class="rank-bar-fill" style="width:74%;background:#ef5350"></div></div>
+              <span class="rank-amount">3,200.00</span>
+            </div>
+            <div class="rank-item">
+              <span class="rank-num top">3</span>
+              <span class="rank-name">餐饮</span>
+              <div class="rank-bar"><div class="rank-bar-fill" style="width:66%;background:#ff9838"></div></div>
+              <span class="rank-amount">2,836.50</span>
+            </div>
+            <div class="rank-item">
+              <span class="rank-num">4</span>
+              <span class="rank-name">交通</span>
+              <div class="rank-bar"><div class="rank-bar-fill" style="width:29%;background:#42a5f5"></div></div>
+              <span class="rank-amount">1,245.00</span>
+            </div>
+            <div class="rank-item">
+              <span class="rank-num">5</span>
+              <span class="rank-name">保险</span>
+              <div class="rank-bar"><div class="rank-bar-fill" style="width:11%;background:#78909c"></div></div>
+              <span class="rank-amount">480.00</span>
+            </div>
+            <div class="rank-item">
+              <span class="rank-num">6</span>
+              <span class="rank-name">娱乐</span>
+              <div class="rank-bar"><div class="rank-bar-fill" style="width:13%;background:#ffa726"></div></div>
+              <span class="rank-amount">576.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trend -->
+      <div class="panel">
+        <div class="panel-header"><h3>收支趋势（近6个月）</h3></div>
+        <div class="panel-body">
+          <svg class="trend-chart" viewBox="0 0 600 200" preserveAspectRatio="xMidYMid meet">
+            <!-- Grid -->
+            <line x1="50" y1="20" x2="580" y2="20" stroke="var(--chart-grid)" stroke-width="1"/>
+            <line x1="50" y1="60" x2="580" y2="60" stroke="var(--chart-grid)" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="50" y1="100" x2="580" y2="100" stroke="var(--chart-grid)" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="50" y1="140" x2="580" y2="140" stroke="var(--chart-grid)" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="50" y1="180" x2="580" y2="180" stroke="var(--chart-grid)" stroke-width="1"/>
+            <!-- Y labels -->
+            <text x="42" y="24" fill="var(--chart-label)" font-size="10" text-anchor="end">3万</text>
+            <text x="42" y="64" fill="var(--chart-label)" font-size="10" text-anchor="end">2万</text>
+            <text x="42" y="104" fill="var(--chart-label)" font-size="10" text-anchor="end">1.5万</text>
+            <text x="42" y="144" fill="var(--chart-label)" font-size="10" text-anchor="end">1万</text>
+            <text x="42" y="184" fill="var(--chart-label)" font-size="10" text-anchor="end">0</text>
+            <!-- Income bars -->
+            <rect x="80" y="30" width="40" height="150" rx="4" fill="rgba(74,170,122,0.3)"/>
+            <rect x="170" y="35" width="40" height="145" rx="4" fill="rgba(74,170,122,0.3)"/>
+            <rect x="260" y="25" width="40" height="155" rx="4" fill="rgba(74,170,122,0.3)"/>
+            <rect x="350" y="40" width="40" height="140" rx="4" fill="rgba(74,170,122,0.3)"/>
+            <rect x="440" y="28" width="40" height="152" rx="4" fill="rgba(74,170,122,0.3)"/>
+            <rect x="530" y="20" width="40" height="160" rx="4" fill="rgba(74,170,122,0.5)"/>
+            <!-- Expense bars -->
+            <rect x="125" y="90" width="40" height="90" rx="4" fill="rgba(212,84,84,0.3)"/>
+            <rect x="215" y="85" width="40" height="95" rx="4" fill="rgba(212,84,84,0.3)"/>
+            <rect x="305" y="75" width="40" height="105" rx="4" fill="rgba(212,84,84,0.3)"/>
+            <rect x="395" y="95" width="40" height="85" rx="4" fill="rgba(212,84,84,0.3)"/>
+            <rect x="485" y="88" width="40" height="92" rx="4" fill="rgba(212,84,84,0.3)"/>
+            <rect x="575" y="82" width="40" height="98" rx="4" fill="rgba(212,84,84,0.4)"/>
+            <!-- X labels -->
+            <text x="122" y="198" fill="var(--chart-label)" font-size="11" text-anchor="middle">10月</text>
+            <text x="212" y="198" fill="var(--chart-label)" font-size="11" text-anchor="middle">11月</text>
+            <text x="302" y="198" fill="var(--chart-label)" font-size="11" text-anchor="middle">12月</text>
+            <text x="392" y="198" fill="var(--chart-label)" font-size="11" text-anchor="middle">1月</text>
+            <text x="482" y="198" fill="var(--chart-label)" font-size="11" text-anchor="middle">2月</text>
+            <text x="572" y="198" fill="var(--text-secondary)" font-size="11" text-anchor="middle" font-weight="600">3月</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="mobile-bottom-nav">
+    <div class="nav-items">
+      <a class="bnav-item" href="dashboard.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>仪表盘</a>
+      <a class="bnav-item" href="transactions.html"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>交易</a>
+      <a class="bnav-item" href="transaction-form.html" style="margin-top:-20px;"><svg viewBox="0 0 24 24" style="width:36px;height:36px;background:var(--accent);border-radius:50%;padding:8px;stroke:var(--btn-primary-text);"><path d="M12 5v14M5 12h14"/></svg>记账</a>
+      <a class="bnav-item active" href="reports.html"><svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>报表</a>
+      <a class="bnav-item" href="accounts.html"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>我的</a>
+    </div>
+  </nav>
+
+  <script>function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open');}</script>
+</body>
+</html>

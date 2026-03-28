@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新增交易 - 账簿</title>
+  <style>
+    :root{
+  --bg-deep:#f0f0f5;--bg:#f8f8fa;--surface:#ffffff;--surface-hover:#f5f5f7;
+  --border:#e5e5ea;--border-light:#d1d1d6;--text:#1d1d1f;--text-secondary:#6e6e73;--text-muted:#aeaeb2;
+  --accent:#b8860b;--accent-hover:#a07608;--accent-dim:rgba(184,134,11,0.08);
+  --income:#34a853;--income-dim:rgba(52,168,83,0.08);
+  --expense:#ea4335;--expense-dim:rgba(234,67,53,0.08);
+  --shadow:0 1px 3px rgba(0,0,0,0.06);--shadow-hover:0 4px 12px rgba(0,0,0,0.08);
+  --header-bg:rgba(248,248,250,0.85);--overlay:rgba(0,0,0,0.3);
+  --chart-grid:#e5e5ea;--chart-label:#aeaeb2;--btn-primary-text:#ffffff;
+--sidebar-w: 240px;
+--font-display: 'Georgia', 'Songti SC', serif;
+--font-body: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+--font-mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+}
+
+body.theme-dark{
+  --bg-deep:#0c0c10;--bg:#111115;--surface:#18181f;--surface-hover:#1f1f28;
+  --border:#252530;--border-light:#2e2e3a;--text:#eae8e4;--text-secondary:#94929e;--text-muted:#5c5a66;
+  --accent:#c8965a;--accent-hover:#daa870;--accent-dim:rgba(200,150,90,0.1);
+  --income:#4aaa7a;--income-dim:rgba(74,170,122,0.1);
+  --expense:#d45454;--expense-dim:rgba(212,84,84,0.1);
+  --shadow:0 1px 3px rgba(0,0,0,0.2);--shadow-hover:0 4px 20px rgba(0,0,0,0.25);
+  --header-bg:rgba(17,17,21,0.8);--overlay:rgba(0,0,0,0.5);
+  --chart-grid:#252530;--chart-label:#5c5a66;--btn-primary-text:#0c0c10;
+}
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {transition:background .3s,color .3s; font-family: var(--font-body); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+
+    .sidebar { width: var(--sidebar-w); min-height: 100vh; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; left: 0; top: 0; z-index: 100; transition: transform 0.3s; }
+    .sidebar-brand { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+    .sidebar-brand .icon { width: 36px; height: 36px; background: var(--accent-dim); border: 1px solid rgba(200,150,90,0.15); border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sidebar-brand .icon svg { width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .sidebar-brand span { font-family: var(--font-display); font-size: 18px; font-weight: 600; letter-spacing: 1.5px; }
+    .sidebar-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+    .nav-section { margin-bottom: 20px; }
+    .nav-section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); padding: 0 12px 8px; font-weight: 500; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 450; transition: all 0.15s; cursor: pointer; margin-bottom: 2px; }
+    .nav-item:hover { background: var(--surface-hover); color: var(--text); }
+    .nav-item.active { background: var(--accent-dim); color: var(--accent); }
+    .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #c8965a, #8a6530); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; flex-shrink: 0; }
+    .sidebar-footer .user-info { flex: 1; }
+    .sidebar-footer .user-name { font-size: 13px; font-weight: 500; }
+    .sidebar-footer .user-role { font-size: 11px; color: var(--text-muted); }
+
+    .main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; }
+    .header { height: 60px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: var(--header-bg); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50; }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .mobile-menu-btn { display: none; background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; }
+    .mobile-menu-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .header h2 { font-size: 18px; font-weight: 600; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .btn-secondary { padding: 8px 18px; background: transparent; color: var(--text-secondary); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-weight: 500; font-family: var(--font-body); cursor: pointer; transition: all 0.15s; text-decoration: none; }
+    .btn-secondary:hover { background: var(--surface-hover); color: var(--text); }
+
+    .content { padding: 28px 32px; max-width: 680px; }
+
+    .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; }
+    .form-card .section-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+
+    /* Type Toggle */
+    .type-toggle { display: flex; gap: 8px; margin-bottom: 28px; }
+    .type-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); font-size: 14px; font-weight: 500; font-family: var(--font-body); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .type-btn:hover { background: var(--surface-hover); }
+    .type-btn.active-expense { background: var(--expense-dim); border-color: var(--expense); color: var(--expense); }
+    .type-btn.active-income { background: var(--income-dim); border-color: var(--income); color: var(--income); }
+    .type-btn.active-transfer { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+    /* Form fields */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .form-row.full { grid-template-columns: 1fr; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-size: 14px; font-family: var(--font-body); outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-group input::placeholder, .form-group textarea::placeholder { color: var(--text-muted); }
+    .form-group select option { background: var(--surface); }
+    .amount-input { font-family: var(--font-mono); font-size: 20px; font-weight: 600; padding: 14px; }
+
+    .form-actions { display: flex; gap: 12px; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .btn-save { flex: 1; padding: 12px; background: var(--accent); color: var(--btn-primary-text); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; font-family: var(--font-body); cursor: pointer; transition: background 0.2s; }
+    .btn-save:hover { background: var(--accent-hover); }
+    .btn-cancel { padding: 12px 24px; background: transparent; color: var(--text-secondary); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: var(--font-body); cursor: pointer; transition: all 0.15s; }
+    .btn-cancel:hover { background: var(--surface-hover); }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: var(--overlay); z-index: 99; }
+
+    .mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); z-index: 100; padding: 6px 0; padding-bottom: max(6px, env(safe-area-inset-bottom)); }
+    .mobile-bottom-nav .nav-items { display: flex; justify-content: space-around; }
+    .bnav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 12px; color: var(--text-muted); text-decoration: none; font-size: 10px; font-weight: 500; }
+    .bnav-item.active { color: var(--accent); }
+    .bnav-item svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-menu-btn { display: flex; }
+      .header { padding: 0 16px; }
+      .content { padding: 20px 16px; padding-bottom: 80px; }
+      .form-card { padding: 24px 20px; }
+      .form-row { grid-template-columns: 1fr; }
+      .mobile-bottom-nav { display: block; }
+    }
+  .theme-toggle{width:36px;height:36px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);transition:all .15s}
+.theme-toggle:hover{background:var(--surface-hover);color:var(--accent);border-color:var(--border-light)}
+.theme-toggle svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.theme-toggle .icon-sun{display:block}
+.theme-toggle .icon-moon{display:none}
+body.theme-dark .theme-toggle .icon-sun{display:none}
+body.theme-dark .theme-toggle .icon-moon{display:block}
+</style>
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><div class="icon"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div><span>账簿</span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section"><div class="nav-section-title">概览</div>
+        <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>仪表盘</a>
+        <a class="nav-item active" href="transactions.html"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>交易记录</a>
+      </div>
+      <div class="nav-section"><div class="nav-section-title">管理</div>
+        <a class="nav-item" href="accounts.html"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>账户管理</a>
+        <a class="nav-item" href="categories.html"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 9h16"/><path d="M9 4v16"/></svg>分类管理</a>
+        <a class="nav-item" href="subscriptions.html"><svg viewBox="0 0 24 24"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>订阅管理</a>
+      </div>
+      <div class="nav-section"><div class="nav-section-title">分析</div>
+        <a class="nav-item" href="reports.html"><svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>月度报表</a>
+      </div>
+    </nav>
+    <div class="sidebar-footer"><div class="avatar">大</div><div class="user-info"><div class="user-name">大哥</div><div class="user-role">管理员</div></div></div>
+  </aside>
+
+  <div class="main">
+    <header class="header">
+      <div class="header-left">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()"><svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+        <h2>新增交易</h2>
+      </div>
+      <div class="header-right"><button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
+        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+        <a class="btn-secondary" href="transactions.html">返回列表</a>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="form-card">
+        <div class="type-toggle">
+          <button class="type-btn active-expense" onclick="setType(this,'expense')">
+            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7z"/></svg>
+            支出
+          </button>
+          <button class="type-btn" onclick="setType(this,'income')">
+            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            收入
+          </button>
+          <button class="type-btn" onclick="setType(this,'transfer')">
+            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M7 17l10-10M7 7h10v10"/></svg>
+            转账
+          </button>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>金额（元）</label>
+            <input type="number" class="amount-input" placeholder="0.00" step="0.01" value="88.00">
+          </div>
+          <div class="form-group">
+            <label>日期</label>
+            <input type="datetime-local" value="2026-03-28T14:30">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>分类</label>
+            <select>
+              <option value="">请选择分类</option>
+              <option value="food" selected>餐饮</option>
+              <option value="transport">交通</option>
+              <option value="shopping">购物</option>
+              <option value="entertainment">娱乐</option>
+              <option value="insurance">保险</option>
+              <option value="housing">住房</option>
+              <option value="education">教育</option>
+              <option value="other">其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>账户</label>
+            <select>
+              <option value="">请选择账户</option>
+              <option value="cmb" selected>招商银行 (尾号 3892)</option>
+              <option value="wechat">微信支付</option>
+              <option value="alipay">支付宝</option>
+              <option value="cash">现金</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <label>备注</label>
+            <textarea placeholder="添加备注信息（可选）">同事聚餐</textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-save">保存交易</button>
+          <button class="btn-cancel">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="mobile-bottom-nav">
+    <div class="nav-items">
+      <a class="bnav-item" href="dashboard.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>仪表盘</a>
+      <a class="bnav-item" href="transactions.html"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>交易</a>
+      <a class="bnav-item active" href="transaction-form.html" style="margin-top:-20px;"><svg viewBox="0 0 24 24" style="width:36px;height:36px;background:var(--accent);border-radius:50%;padding:8px;stroke:var(--btn-primary-text);"><path d="M12 5v14M5 12h14"/></svg>记账</a>
+      <a class="bnav-item" href="reports.html"><svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>报表</a>
+      <a class="bnav-item" href="accounts.html"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>我的</a>
+    </div>
+  </nav>
+
+  <script>
+    function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open');}
+    function setType(el, type) {
+      document.querySelectorAll('.type-btn').forEach(b => { b.className = 'type-btn'; });
+      el.classList.add('active-' + type);
+    }
+  </script>
+</body>
+</html>
